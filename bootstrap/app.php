@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'login',
             'logout',
             'sanctum/csrf-cookie',
+            'user',
+            'admin/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
