@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('photo')->nullable();
-            $table->enum('role', ['admin', 'formateur', 'apprenant'])->default('apprenant');
+            $table->enum('role', ['admin', 'formateur', 'etudiant'])->default('etudiant');
             $table->rememberToken();
             $table->timestamps();
         });

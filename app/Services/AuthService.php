@@ -16,7 +16,7 @@ class AuthService
             'telephone' => $data['telephone'],
             'email' => $data['email'],
             'password' => $data['password'],
-            'role' => UserRole::APPRENANT->value
+            'role' => UserRole::etudiant->value
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;

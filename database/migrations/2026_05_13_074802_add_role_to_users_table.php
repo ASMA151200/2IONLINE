@@ -16,9 +16,9 @@ return new class extends Migration
         if (!Schema::hasColumn('users', 'role')) {
             $table->enum('role', [
                 'admin',
-                'apprenant',
+                'etudiant',
                 'formateur'
-                ])->default('apprenant');
+                ])->default('etudiant');
         }
 
         });
