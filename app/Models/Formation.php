@@ -32,9 +32,9 @@ class Formation extends Model
         return $this->belongsTo(Categorie::class);
     }
 
-    public function formateur(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'formateur_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function modules(): HasMany

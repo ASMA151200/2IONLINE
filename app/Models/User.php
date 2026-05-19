@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -82,7 +83,17 @@ class User extends Authenticatable
 
     public function formations(): HasMany
     {
-        return $this->hasMany(Formation::class, 'formateur_id');
+        return $this->hasMany(Formation::class, 'user_id');
+    }
+
+    public function formateur(): HasOne
+    {
+        return $this->hasOne(Formateur::class);
+    }
+
+    public function etudiant(): HasOne
+    {
+        return $this->hasOne(Etudiant::class);
     }
 
 }

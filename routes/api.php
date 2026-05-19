@@ -7,9 +7,8 @@ use App\Http\Controllers\CategorieController;
 use App\Http\Controllers\FormationController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\LeconController;
-
-
-
+use App\Http\Controllers\FormateurController;
+use App\Http\Controllers\EtudiantController;
 
 Route::prefix('v1')->group(function (){
 
@@ -20,6 +19,15 @@ Route::prefix('v1')->group(function (){
 
 
     Route::middleware('auth:sanctum')->group(function () {
+
+        // Accessible uniquement par l'admin
+        Route::middleware('role:admin')->group(function () {
+            
+            Route::apiResource('formateurs', FormateurController::class);
+            Route::apiResource('etudiants', EtudiantController::class);
+
+        });
+
         Route::post('/logout', [AuthController::class, 'logout']);
 
         //categories
@@ -33,6 +41,7 @@ Route::prefix('v1')->group(function (){
 
         //lecons
         Route::apiResource('lecons', LeconController::class);
+
 
 
     });

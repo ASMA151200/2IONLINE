@@ -6,5 +6,6 @@ enum UserRole:string
 {
     case ADMIN = 'admin';
     case etudiant = 'etudiant';
-    case FORMATEUR = 'formateur';
+    case user = 'user';
+    case formateur ='formateur';
 }

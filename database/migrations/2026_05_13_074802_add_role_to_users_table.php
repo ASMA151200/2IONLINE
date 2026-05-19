@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('role', [
                 'admin',
                 'etudiant',
-                'formateur'
+                'user'
                 ])->default('etudiant');
         }
 

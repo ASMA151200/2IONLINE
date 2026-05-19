@@ -38,8 +38,8 @@ class FormationController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image');
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo');
         }
 
         $data['user_id'] = $request->user()->id; // si user s'est authentifie
@@ -81,8 +81,8 @@ class FormationController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image');
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo');
         }
 
         $formation = $this->formationService->update($formation, $data);
