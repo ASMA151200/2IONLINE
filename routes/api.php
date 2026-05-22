@@ -9,6 +9,7 @@ use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\LeconController;
 use App\Http\Controllers\FormateurController;
 use App\Http\Controllers\EtudiantController;
+use App\Http\Controllers\CertificatController;
 
 Route::prefix('v1')->group(function (){
 
@@ -41,7 +42,10 @@ Route::prefix('v1')->group(function (){
 
         //lecons
         Route::apiResource('lecons', LeconController::class);
-
+        //certificats
+        Route::get('/certificats/{certificat}/download', [CertificatController::class, 'download'])
+    ->middleware('auth:sanctum');
+        Route::apiResource('certificats', CertificatController::class);
 
 
     });

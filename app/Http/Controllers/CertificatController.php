@@ -5,62 +5,122 @@ namespace App\Http\Controllers;
 use App\Models\Certificat;
 use App\Http\Requests\StoreCertificatRequest;
 use App\Http\Requests\UpdateCertificatRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class CertificatController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Liste des certificats
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+        $certificats = Certificat::with(['user', 'formation'])
+            ->latest()
+            ->get();
+
+        return response()->json($certificats);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Ajouter un certificat
      */
-    public function create()
+    public function store(StoreCertificatRequest $request): JsonResponse
     {
-        //
+        $data = $request->validated();
+
+        if ($request->hasFile('fichier_pdf')) {
+            $data['fichier_pdf'] = $request
+                ->file('fichier_pdf')
+                ->store('certificats', 'public');
+        }
+
+        $certificat = Certificat::create($data);
+
+        return response()->json([
+            'message' => 'Certificat créé avec succès',
+            'data' => $certificat->load(['user', 'formation'])
+        ], 201);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Afficher un certificat
      */
-    public function store(StoreCertificatRequest $request)
+    public function show(Certificat $certificat): JsonResponse
     {
-        //
+        return response()->json(
+            $certificat->load(['user', 'formation'])
+        );
     }
 
     /**
-     * Display the specified resource.
+     * Modifier un certificat
      */
-    public function show(Certificat $certificat)
-    {
-        //
+    public function update(
+        UpdateCertificatRequest $request,
+        Certificat $certificat
+    ): JsonResponse {
+
+        $data = $request->validated();
+
+        if ($request->hasFile('fichier_pdf')) {
+
+            if (
+                $certificat->fichier_pdf &&
+                Storage::disk('public')->exists($certificat->fichier_pdf)
+            ) {
+                Storage::disk('public')
+                    ->delete($certificat->fichier_pdf);
+            }
+
+            $data['fichier_pdf'] = $request
+                ->file('fichier_pdf')
+                ->store('certificats', 'public');
+        }
+
+        $certificat->update($data);
+
+        return response()->json([
+            'message' => 'Certificat modifié avec succès',
+            'data' => $certificat->fresh()
+        ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Supprimer un certificat
      */
-    public function edit(Certificat $certificat)
+    public function destroy(Certificat $certificat): JsonResponse
     {
-        //
+        if (
+            $certificat->fichier_pdf &&
+            Storage::disk('public')->exists($certificat->fichier_pdf)
+        ) {
+            Storage::disk('public')
+                ->delete($certificat->fichier_pdf);
+        }
+
+        $certificat->delete();
+
+        return response()->json([
+            'message' => 'Certificat supprimé avec succès'
+        ]);
+    }
+   public function download(Certificat $certificat): BinaryFileResponse
+{
+    if ($certificat->user_id !== auth()->id()) {
+        abort(403, 'Accès interdit');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateCertificatRequest $request, Certificat $certificat)
-    {
-        //
+    if (!$certificat->fichier_pdf || !Storage::disk('public')->exists($certificat->fichier_pdf)) {
+        abort(404, 'Fichier introuvable');
     }
+    
+    dd($certificat->fichier_pdf);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Certificat $certificat)
-    {
-        //
-    }
+    return Storage::disk('public')->download(
+        $certificat->fichier_pdf,
+        'certificat-' . $certificat->numero_certificat . '.pdf'
+    );
+}
 }
