@@ -8,59 +8,49 @@ use App\Http\Requests\UpdateQuestionRequest;
 
 class QuestionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return response()->json([
+            'data' => Question::with('reponses')->orderBy('ordre')->get()
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreQuestionRequest $request)
     {
-        //
+        $question = Question::create($request->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Question créée',
+            'data' => $question
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Question $question)
     {
-        //
+        return response()->json([
+            'data' => $question->load('reponses')
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Question $question)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateQuestionRequest $request, Question $question)
     {
-        //
+        $question->update($request->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Question modifiée',
+            'data' => $question
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Question $question)
     {
-        //
+        $question->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Question supprimée'
+        ]);
     }
 }

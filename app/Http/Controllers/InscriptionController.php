@@ -5,62 +5,140 @@ namespace App\Http\Controllers;
 use App\Models\Inscription;
 use App\Http\Requests\StoreInscriptionRequest;
 use App\Http\Requests\UpdateInscriptionRequest;
+use App\Services\InscriptionService;
 
 class InscriptionController extends Controller
 {
+    public function __construct(
+        protected InscriptionService $inscriptionService
+    ){}
+
     /**
-     * Display a listing of the resource.
+     * liste
      */
     public function index()
     {
-        //
+        return response()->json([
+            'success'=>true,
+            'data'=>$this
+                    ->inscriptionService
+                    ->getAll()
+        ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * creer inscription
      */
-    public function create()
+    public function store(
+        StoreInscriptionRequest $request
+    )
     {
-        //
+
+        $data = $request->validated();
+
+        // utilisateur connecté
+        $data['user_id']=auth()->id();
+
+        //statut par défaut
+        $data['statut'] =
+        $data['statut'] ?? 'actif';
+
+
+        //Empêcher double inscription
+        $exist = Inscription::where(
+                    'user_id',
+                    auth()->id()
+                )
+                ->where(
+                    'formation_id',
+                    $data['formation_id']
+                )
+                ->exists();
+
+        if($exist){
+
+            return response()->json([
+                'success'=>false,
+                'message'=>
+                'Vous êtes déjà inscrit'
+            ],409);
+        }
+
+
+        $inscription =
+        $this->inscriptionService
+        ->create($data);
+
+        return response()->json([
+            'success'=>true,
+            'message'=>
+            'Inscription effectuée avec succès',
+
+            'data'=>$inscription->load([
+                'user',
+                'formation'
+            ])
+        ],201);
+    }
+
+
+    /**
+     * afficher
+     */
+    public function show(
+        Inscription $inscription
+    )
+    {
+        return response()->json([
+            'success'=>true,
+            'data'=>
+            $inscription->load([
+                'user',
+                'formation',
+                'paiements'
+            ])
+        ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * modifier
      */
-    public function store(StoreInscriptionRequest $request)
+    public function update(
+        UpdateInscriptionRequest $request,
+        Inscription $inscription
+    )
     {
-        //
+
+        $inscription =
+        $this->inscriptionService
+        ->update(
+            $inscription,
+            $request->validated()
+        );
+
+        return response()->json([
+            'success'=>true,
+            'message'=>
+            'Inscription modifiée',
+
+            'data'=>$inscription
+        ]);
     }
 
     /**
-     * Display the specified resource.
+     * supprimer
      */
-    public function show(Inscription $inscription)
+    public function destroy(
+        Inscription $inscription
+    )
     {
-        //
-    }
+        $this->inscriptionService
+        ->delete($inscription);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Inscription $inscription)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateInscriptionRequest $request, Inscription $inscription)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Inscription $inscription)
-    {
-        //
+        return response()->json([
+            'success'=>true,
+            'message'=>
+            'Inscription supprimée'
+        ]);
     }
 }

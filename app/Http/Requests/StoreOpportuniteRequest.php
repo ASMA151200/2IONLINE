@@ -2,28 +2,40 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreOpportuniteRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+
+            'titre' => 'required|string',
+
+            'type' => 'required|in:stage,emploi,formation,bourse,partenariat',
+
+            'description' => 'required|string',
+
+            'documents' => 'nullable|file|mimes:pdf',
+
+            'date_debut' => 'required|date',
+
+            'date_fin' => 'required|date|after_or_equal:date_debut',
+
+            'ville' => 'required|string',
+
+            'pays' => 'required|string',
+
+            'entreprise' => 'nullable|string',
+
+            'lien_inscription' => 'nullable|url',
+
+            'statut' => 'required|in:ouvert,ferme,en cours',
         ];
     }
 }

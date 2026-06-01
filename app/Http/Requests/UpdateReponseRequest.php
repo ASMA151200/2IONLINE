@@ -2,28 +2,26 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateReponseRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+
+            'texte' => 'sometimes|string',
+
+            'est_correct' => 'sometimes|boolean',
+
+            'ordre' => 'sometimes|integer',
+
+            'question_id' => 'sometimes|exists:questions,id',
         ];
     }
 }

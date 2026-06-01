@@ -3,64 +3,167 @@
 namespace App\Http\Controllers;
 
 use App\Models\Progression;
+use App\Services\ProgressionService;
 use App\Http\Requests\StoreProgressionRequest;
 use App\Http\Requests\UpdateProgressionRequest;
 
 class ProgressionController extends Controller
 {
+
+    public function __construct(
+        protected ProgressionService
+        $progressionService
+    ){}
+
     /**
-     * Display a listing of the resource.
+     * liste
      */
     public function index()
     {
-        //
+        return response()->json([
+            'success'=>true,
+
+            'data'=>
+            $this
+            ->progressionService
+            ->getAll()
+        ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * creer
      */
-    public function create()
+    public function store(
+        StoreProgressionRequest $request
+    )
     {
-        //
+
+        $data=
+        $request->validated();
+
+        //user connecté
+        $data['user_id']
+        = auth()->id();
+
+
+        //Empêcher doublon
+        $exist=
+        Progression::where(
+            'user_id',
+            auth()->id()
+        )
+        ->where(
+            'lecon_id',
+            $data['lecon_id']
+        )
+        ->exists();
+
+        if($exist){
+
+            return response()->json([
+                'success'=>false,
+                'message'=>
+                'Progression déjà créée'
+            ],409);
+        }
+
+        $progression=
+        $this
+        ->progressionService
+        ->create($data);
+
+        return response()->json([
+
+            'success'=>true,
+
+            'message'=>
+            'Progression créée avec succès',
+
+            'data'=>
+            $progression->load([
+                'user',
+                'lecon'
+            ])
+
+        ],201);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreProgressionRequest $request)
-    {
-        //
-    }
 
     /**
-     * Display the specified resource.
+     * afficher
      */
-    public function show(Progression $progression)
+    public function show(
+        Progression $progression
+    )
     {
-        //
+
+        return response()->json([
+
+            'success'=>true,
+
+            'data'=>
+            $progression->load([
+                'user',
+                'lecon'
+            ])
+
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Progression $progression)
-    {
-        //
-    }
 
     /**
-     * Update the specified resource in storage.
+     * modifier
      */
-    public function update(UpdateProgressionRequest $request, Progression $progression)
+    public function update(
+        UpdateProgressionRequest $request,
+        Progression $progression
+    )
     {
-        //
+
+        $progression=
+        $this
+        ->progressionService
+        ->update(
+            $progression,
+            $request->validated()
+        );
+
+
+        return response()->json([
+
+            'success'=>true,
+
+            'message'=>
+            'Progression modifiée',
+
+            'data'=>
+            $progression
+
+        ]);
     }
 
+
     /**
-     * Remove the specified resource from storage.
+     * supprimer
      */
-    public function destroy(Progression $progression)
+    public function destroy(
+        Progression $progression
+    )
     {
-        //
+
+        $this
+        ->progressionService
+        ->delete(
+            $progression
+        );
+
+        return response()->json([
+
+            'success'=>true,
+
+            'message'=>
+            'Progression supprimée'
+
+        ]);
     }
 }
