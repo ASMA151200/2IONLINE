@@ -5,8 +5,12 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Etudiant;
 use App\Enums\UserRole;
+
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+
+use App\Mail\EtudiantCreeMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 
 class EtudiantService
@@ -42,6 +46,12 @@ class EtudiantService
             if (!empty($data['formations'])) {
                 $etudiant->formations()->sync($data['formations']);
             }
+
+            // Recharger les formations avant d'envoyer le mail
+            $etudiant->load(['formations']);
+
+            // Envoi du mail
+            Mail::to($user->email)->send(new EtudiantCreeMail($etudiant, $password));
 
             return [
                 'etudiant' => $etudiant->load(['user', 'formations']),

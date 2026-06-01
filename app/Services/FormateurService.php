@@ -4,11 +4,14 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Formateur;
-use App\Models\Module;
 use App\Enums\UserRole;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+
+use App\Mail\FormateurCreeMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 class FormateurService
 {
@@ -21,49 +24,40 @@ class FormateurService
 
 
     //Création formateur
-    public function store(array $data)
+    public function create(array $data): array
     {
-        //Création user
+        return DB::transaction(function () use ($data) {
 
-        $password = Str::random(6);
+            $password = Str::random(6);
 
-        $user = User::create([
+            $user = User::create([
+                'prenom'    => $data['prenom'],
+                'nom'       => $data['nom'],
+                'telephone' => $data['telephone'],
+                'email'     => $data['email'],
+                'password'  => Hash::make($password),
+                'role'      => UserRole::formateur->value,
+            ]);
 
-            'prenom' => $data['prenom'],
+            $formateur = $user->formateur()->create([
+                'specialite' => $data['specialite'],
+            ]);
 
-            'nom' => $data['nom'],
+            if (!empty($data['modules'])) {
+                $formateur->modules()->sync($data['modules']);
+            }
 
-            'telephone' => $data['telephone'],
+            // Recharger les modules avant d'envoyer le mail
+            $formateur->load(['user', 'modules']);
 
-            'email' =>$data['email'],
+            // Envoi du mail
+            Mail::to($user->email)->send(new FormateurCreeMail($formateur, $password));
 
-            'password' => Hash::make($password),
-
-            'role' => UserRole::formateur->value
-        ]);
-
-        //Création profil formateur
-
-        $formateur = Formateur::create([
-
-            'user_id' => $user->id,
-
-            'specialite' => $data['specialite']
-
-        ]);
-
-
-        //Assignation modules
-
-        if (isset($data['modules'])) {
-
-            $formateur->modules()->sync($data['modules']);
-        }
-
-        return [
-            'formateur' => $formateur->load(['user','modules']),
-            'password' => $password
-        ];
+            return [
+                'formateur' => $formateur,
+                'password'  => $password,
+            ];
+        });
     }
 
 
@@ -74,7 +68,7 @@ class FormateurService
     }
 
 
-    //Mise a jour formateur
+    //Modifier un formateur
     public function update(Formateur $formateur, array $data)
     {
         $formateur->user->update([

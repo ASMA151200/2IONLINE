@@ -22,26 +22,36 @@ Route::prefix('v1')->group(function (){
 
         // Accessible uniquement par l'admin
         Route::middleware('role:admin')->group(function () {
-            
+
+            //creation de professeurs
             Route::apiResource('formateurs', FormateurController::class);
+            //creation d'etudiants
             Route::apiResource('etudiants', EtudiantController::class);
+            //categories
+            Route::apiResource('categories',CategorieController::class);
+            //formations
+            Route::apiResource('formations',FormationController::class);
+            //modules
+            Route::apiResource('modules', ModuleController::class);
+            //lecons
+            Route::apiResource('lecons', LeconController::class);
+
+        });
+
+        Route::middleware('role:professeur')->group(function () {
+
+            //categories
+            Route::apiResource('categories',CategorieController::class);
+            //formations
+            Route::apiResource('formations',FormationController::class);
+            //modules
+            Route::apiResource('modules', ModuleController::class);
+            //lecons
+            Route::apiResource('lecons', LeconController::class);
 
         });
 
         Route::post('/logout', [AuthController::class, 'logout']);
-
-        //categories
-        Route::apiResource('categories',CategorieController::class);
-
-        //formations
-        Route::apiResource('formations',FormationController::class);
-
-        //modules
-        Route::apiResource('modules', ModuleController::class);
-
-        //lecons
-        Route::apiResource('lecons', LeconController::class);
-
 
 
     });
