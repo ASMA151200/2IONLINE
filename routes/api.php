@@ -9,6 +9,7 @@ use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\LeconController;
 use App\Http\Controllers\FormateurController;
 use App\Http\Controllers\EtudiantController;
+use App\Http\Controllers\CertificatController;
 
 Route::prefix('v1')->group(function (){
 
@@ -40,21 +41,20 @@ Route::prefix('v1')->group(function (){
 
         Route::middleware('role:professeur')->group(function () {
 
-            //categories
-            Route::apiResource('categories',CategorieController::class);
-            //formations
-            Route::apiResource('formations',FormationController::class);
-            //modules
-            Route::apiResource('modules', ModuleController::class);
-            //lecons
-            Route::apiResource('lecons', LeconController::class);
+        //categories
+        Route::apiResource('categories',CategorieController::class);
 
+        //formations
+        Route::apiResource('formations',FormationController::class);
+
+        //modules
+        Route::apiResource('modules', ModuleController::class);
+
+        //lecons
+        Route::apiResource('lecons', LeconController::class);
         });
-
-        Route::post('/logout', [AuthController::class, 'logout']);
 
 
     });
-
 
 });

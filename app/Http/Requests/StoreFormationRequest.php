@@ -23,7 +23,7 @@ class StoreFormationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id'     => 'required|exists:users,id',
+           // 'user_id'     => 'required|exists:users,id',
             'categorie_id'=> 'required|exists:categories,id',
             'titre'       => 'required|string|max:255',
             'description' => 'required|string',
