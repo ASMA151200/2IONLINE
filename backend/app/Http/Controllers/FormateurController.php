@@ -38,15 +38,12 @@ class FormateurController extends Controller
      */
     public function store(StoreFormateurRequest $request)
     {
-        $data = $this->formateurService->store($request->validated());
+        $data = $this->formateurService->create($request->validated());
 
         return response()->json([
             'success' => true,
-
             'message' => 'Formateur créé avec succès',
-
             'password_temporaire' => $data['password'],
-
             'data' => $data['formateur']
 
         ], 201);

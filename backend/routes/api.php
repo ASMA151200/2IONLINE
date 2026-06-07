@@ -9,7 +9,7 @@ use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\LeconController;
 use App\Http\Controllers\FormateurController;
 use App\Http\Controllers\EtudiantController;
-use App\Http\Controllers\CertificatController;
+
 
 Route::prefix('v1')->group(function (){
 
@@ -20,6 +20,7 @@ Route::prefix('v1')->group(function (){
 
 
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
 
         // Accessible uniquement par l'admin
         Route::middleware('role:admin')->group(function () {
@@ -41,20 +42,21 @@ Route::prefix('v1')->group(function (){
 
         Route::middleware('role:professeur')->group(function () {
 
-        //categories
-        Route::apiResource('categories',CategorieController::class);
+            //categories
+            Route::apiResource('categories',CategorieController::class);
 
-        //formations
-        Route::apiResource('formations',FormationController::class);
+            //formations
+            Route::apiResource('formations',FormationController::class);
 
-        //modules
-        Route::apiResource('modules', ModuleController::class);
+            //modules
+            Route::apiResource('modules', ModuleController::class);
 
-        //lecons
-        Route::apiResource('lecons', LeconController::class);
-        });
+            //lecons
+            Route::apiResource('lecons', LeconController::class);
+            });
 
 
     });
+
 
 });

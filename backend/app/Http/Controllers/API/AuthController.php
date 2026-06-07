@@ -9,6 +9,7 @@ use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 
+
 class AuthController extends Controller
 {
 
