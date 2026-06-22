@@ -37,13 +37,37 @@ class ModuleController extends Controller
      */
     public function store(StoreModuleRequest $request)
     {
-        $module = $this->moduleService->create($request->validated());
+        try{
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Module créé avec succès',
-            'data'    => $module
-        ], 201);
+            //validation
+            $data = $request->validated();
+
+            //Verification
+            $existingModule = Module::where('titre', $data['titre'])->exists();
+            if ($existingModule){
+                return response()->json([
+                    'message' => 'Ce module existe deja'
+                ]);
+            }
+
+            //Creation via le service
+            $module = $this->moduleService->create($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Module créé avec succès',
+                'data'    => $module
+            ], 201);
+        }catch(\Exception $e){
+
+            return response()->json([
+                'message' => 'une erreur inattendue est survenue',
+                'error' => $e->getMessage()
+            ]);
+            
+        }
+
+
     }
 
     /**

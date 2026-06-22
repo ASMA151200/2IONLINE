@@ -13,48 +13,40 @@ use App\Http\Controllers\EtudiantController;
 
 Route::prefix('v1')->group(function (){
 
-
+    //Routes publiques
     Route::post('/register', [AuthController::class, 'register']);
-
     Route::post('/login', [AuthController::class, 'login']);
 
+    //Lecture publique sans token(Voir Formations et Categories)
+    Route::apiResource('categories', CategorieController::class)->only(['index', 'show']);
+    Route::apiResource('formations', FormationController::class)->only(['index', 'show']);
 
+    //Routes protegees
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/me', [AuthController::class, 'me']);
 
-        // Accessible uniquement par l'admin
-        Route::middleware('role:admin')->group(function () {
+        // Admin et Formateur
+        Route::middleware('role:admin,formateur')->group(function () {
 
-            //creation de professeurs
-            Route::apiResource('formateurs', FormateurController::class);
-            //creation d'etudiants
-            Route::apiResource('etudiants', EtudiantController::class);
-            //categories
-            Route::apiResource('categories',CategorieController::class);
-            //formations
-            Route::apiResource('formations',FormationController::class);
-            //modules
-            Route::apiResource('modules', ModuleController::class);
-            //lecons
-            Route::apiResource('lecons', LeconController::class);
+            Route::apiResource('categories',CategorieController::class)->except(['index','show']); //categories
+            Route::apiResource('formations',FormationController::class)->except(['index','show']);;  //formations
+            Route::apiResource('modules', ModuleController::class); //modules
+            Route::apiResource('lecons', LeconController::class);   //lecons
 
         });
 
-        Route::middleware('role:professeur')->group(function () {
+        //Admin uniquement
+        Route::middleware('role:admin')->group(function () {
+            Route::apiResource('formateurs', FormateurController::class); //creation de formateur
+            Route::apiResource('etudiants', EtudiantController::class);  //creation d'etudiants
 
-            //categories
-            Route::apiResource('categories',CategorieController::class);
+        });
 
-            //formations
-            Route::apiResource('formations',FormationController::class);
-
-            //modules
-            Route::apiResource('modules', ModuleController::class);
-
-            //lecons
-            Route::apiResource('lecons', LeconController::class);
-            });
-
+        //Apprenant uniquement
+        Route::middleware('role:etudiant')->group(function () {
+            Route::apiResource('etudiants', [EtudiantController::class, 'voirCours']); // voir ses cours
+        });
 
     });
 

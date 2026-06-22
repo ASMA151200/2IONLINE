@@ -14,9 +14,9 @@ class CheckRole
      *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $role ): Response
+    public function handle(Request $request, Closure $next, string ...$roles ): Response
     {
-        if (!Auth::check() || Auth::user()->role !== $role) {
+        if (!Auth::check() || !in_array(Auth::user()->role, $roles)) {
         return response()->json([
             'success' => false,
             'message' => 'Accès non autorisé'

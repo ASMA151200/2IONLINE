@@ -38,15 +38,33 @@ class CategorieController extends Controller
      */
     public function store(StoreCategorieRequest $request)
     {
-        $data = $request->validated();
+        try{
+            //validation
+            $data = $request->validated();
 
-        $categorie = $this->categorieService->create($data);
+            //verifier si la categorie existe
+            $existingCategorie = Categorie::where('titre', $data['titre'])->exists();
+            if($existingCategorie){
+                return response()->json([
+                    'message' => 'Cette categorie existe deja'
+                ]);
+            }
 
-        return response()->json([
-            'success' => true,
-            'Message' => 'Categorie cree avec succes',
-            'data' => $categorie
-        ], 201);
+            //creation via le service
+            $categorie = $this->categorieService->create($data);
+            return response()->json([
+                'success' => true,
+                'Message' => 'Categorie cree avec succes',
+                'data' => $categorie
+            ], 201);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'une erreur inattendue est survenue',
+                'error' => $e->getMessage()
+            ], 500);
+
+        }
     }
 
     /**

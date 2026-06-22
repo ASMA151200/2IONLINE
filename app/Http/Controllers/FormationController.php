@@ -16,7 +16,6 @@ class FormationController extends Controller
      */
     public function index()
     {
-
         return response()->json([
             'success' => true,
             'data'    => $this->formationService->getAll()
@@ -36,23 +35,42 @@ class FormationController extends Controller
      */
     public function store(StoreFormationRequest $request)
     {
-        $data = $request->validated();
+        try{
+            //validation
+            $data = $request->validated();
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image');
+            //verification
+            $existingFormation = Formation::where('titre', $data['titre'])->exists();
+            if($existingFormation){
+                return response()->json([
+                    'message' => 'Cette formation existe deja'
+                ]);
+            }
+
+            //creation via le service
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image');
+            }
+
+            $data['user_id'] = $request->user()->id; // si user s'est authentifie
+            //$data['user_id'] = $request->user_id; // si user ne s'est pas authentifie
+
+            $formation = $this->formationService->create($data);
+            return response()->json([
+                'success' => true,
+                'message' => 'Formation créée avec succès',
+                'data'    => $formation
+            ], 201);
+
+        }catch(\Exception $e){
+
+            return response()->json([
+                'message' => 'une erreur inattendue est survenue',
+                'error' => $e->getMessage()
+            ]);
+
         }
 
-       $data['user_id'] = $request->user()->id; // si user s'est authentifie
-        //$data['user_id'] = $request->user_id; // si user ne s'est pas authentifie
-
-
-        $formation = $this->formationService->create($data);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Formation créée avec succès',
-            'data'    => $formation
-        ], 201);
     }
 
     /**

@@ -50,9 +50,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Connexion réussie',
-
             'token' => $data['token'],
-
             'user' => new UserResource($data['user'])
         ], 201);
     }
@@ -66,6 +64,15 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Déconnexion réussie'
+        ]);
+    }
+
+    // partie utilisateur connecté
+    public function me(Request $request)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => new UserResource($request->user())
         ]);
     }
 
