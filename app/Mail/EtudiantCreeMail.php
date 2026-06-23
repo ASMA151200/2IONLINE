@@ -14,7 +14,7 @@ class EtudiantCreeMail extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        public Etudiant $formateur,
+        public Etudiant $etudiant,
         public string $password
     ) {}
 
@@ -28,7 +28,7 @@ class EtudiantCreeMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.formateur.cree',
+            view: 'emails.etudiant.cree',
         );
     }
 

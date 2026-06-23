@@ -11,17 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('reponses', function (Blueprint $table) {
+        Schema::create('exercice_reponses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('exercice_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('question_id')->constrained()->onDelete('cascade');
-            $table->foreignId('choix_id')->nullable()->constrained('choix')->onDelete('cascade'); // QCM
-            $table->text('reponse_texte')->nullable(); // Question ouverte
-            $table->integer('score')->nullable(); // Score auto (QCM) ou manuel (ouvert)
+            $table->unsignedBigInteger('question_id');
+            $table->foreign('question_id')->references('id')->on('exercice_questions')->onDelete('cascade');
+            $table->unsignedBigInteger('choix_id')->nullable();
+            $table->foreign('choix_id')->references('id')->on('choix')->onDelete('cascade');
+            $table->text('reponse_texte')->nullable();
+            $table->integer('score')->nullable();
             $table->enum('statut', ['en_attente', 'corrige'])->default('en_attente');
             $table->text('commentaire_formateur')->nullable();
-            // Un etudiant ne répond qu'une fois par question par exercice
             $table->unique(['exercice_id', 'user_id', 'question_id']);
             $table->timestamps();
         });
@@ -32,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('reponses');
+        Schema::dropIfExists('exercice_reponses');
     }
 };

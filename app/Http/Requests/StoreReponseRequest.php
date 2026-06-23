@@ -12,7 +12,7 @@ class StoreReponseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -20,10 +20,21 @@ class StoreReponseRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
-    {
+    public function rules(): array{
         return [
-            //
+        'reponses'                  => 'required|array|min:1',
+        'reponses.*.question_id'    => 'required|exists:exercice_questions,id',
+        'reponses.*.choix_id'       => 'nullable|exists:choix,id',
+        'reponses.*.reponse_texte'  => 'nullable|string',
+    ];
+    }
+
+    public function messages(): array{
+        return [
+            'reponses.required'                 => 'Au moins une réponse est obligatoire',
+            'reponses.*.question_id.required'   => 'La question est obligatoire',
+            'reponses.*.question_id.exists'     => 'Cette question n\'existe pas',
         ];
     }
+
 }

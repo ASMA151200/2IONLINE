@@ -7,28 +7,28 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Question extends Model
+
+class Exercice extends Model
 {
     use HasFactory;
 
-    protected $table = 'exercice_questions';
-
     protected $fillable = [
-        'exercice_id',
-        'contenu',
+        'lecon_id',
+        'titre',
+        'description',
         'type',
-        'points',
-        'ordre'
+        'duree',
+        'note_max'
     ];
 
-    public function exercice(): BelongsTo
+    public function lecon(): BelongsTo
     {
-        return $this->belongsTo(Exercice::class);
+        return $this->belongsTo(Lecon::class);
     }
 
-    public function choix(): HasMany
+    public function questions(): HasMany
     {
-        return $this->hasMany(Choix::class)->orderBy('ordre');
+        return $this->hasMany(Question::class)->orderBy('ordre');
     }
 
     public function reponses(): HasMany
