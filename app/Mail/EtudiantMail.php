@@ -28,7 +28,7 @@ class EtudiantCreeMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.etudiant.cree',
+            view: 'emails.mailEtudiant',
         );
     }
 

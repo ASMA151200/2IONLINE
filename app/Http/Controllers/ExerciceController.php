@@ -67,7 +67,7 @@ class ExerciceController extends Controller
         ]);
     }
 
-    // Soumettre les réponses (apprenant)
+    // Soumettre les réponses (par etudiant)
     public function soumettre(StoreReponseRequest $request, Exercice $exercice)
     {
         try {
@@ -104,7 +104,7 @@ class ExerciceController extends Controller
         ]);
     }
 
-    // Résultats d'un apprenant (apprenant/formateur/admin)
+    // Résultats d'un etudiant (etudiant/formateur/admin)
     public function resultats(Request $request, Exercice $exercice)
     {
         $userId = $request->query('user_id', $request->user()->id);

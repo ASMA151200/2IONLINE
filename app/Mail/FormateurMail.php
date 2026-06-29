@@ -28,7 +28,7 @@ class FormateurCreeMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.formateur.cree',
+            view: 'emails.mailFormateur',
         );
     }
 
