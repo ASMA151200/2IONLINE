@@ -9,13 +9,11 @@ use App\Services\ModuleService;
 
 class ModuleController extends Controller
 {
-
     public function __construct(protected ModuleService $moduleService)
     {}
 
-    /**
-     * //Liste des modules
-     */
+
+    // Liste des modules
     public function index()
     {
         return response()->json([
@@ -24,21 +22,10 @@ class ModuleController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Creer un module
-     */
+    // Creer un module
     public function store(StoreModuleRequest $request)
     {
         try{
-
             //validation
             $data = $request->validated();
 
@@ -59,20 +46,15 @@ class ModuleController extends Controller
                 'data'    => $module
             ], 201);
         }catch(\Exception $e){
-
             return response()->json([
                 'message' => 'une erreur inattendue est survenue',
                 'error' => $e->getMessage()
             ]);
-            
         }
-
 
     }
 
-    /**
-     * afficher un module
-     */
+    // Afficher un module
     public function show(Module $module)
     {
         return response()->json([
@@ -81,17 +63,8 @@ class ModuleController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Module $module)
-    {
-        //
-    }
 
-    /**
-     * Modifier un module
-     */
+    // Modifier un module
     public function update(UpdateModuleRequest $request, Module $module)
     {
         $module = $this->moduleService->update($module, $request->validated());
@@ -103,9 +76,7 @@ class ModuleController extends Controller
         ]);
     }
 
-    /**
-     * Supprimer un module
-     */
+    // Supprimer un module
     public function destroy(Module $module)
     {
         $this->moduleService->delete($module);

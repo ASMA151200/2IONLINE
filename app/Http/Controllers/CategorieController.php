@@ -26,14 +26,6 @@ class CategorieController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Creer une categorie
      */
     public function store(StoreCategorieRequest $request)
@@ -76,14 +68,6 @@ class CategorieController extends Controller
             'success' => true,
             'data' => $categorie->load('formations')
         ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Categorie $categorie)
-    {
-        //
     }
 
     /**

@@ -24,7 +24,6 @@ class EtudiantController extends Controller
             'success' => true,
             'data' => $etudiant
             ], 200);
-
     }
 
     /**
@@ -78,4 +77,5 @@ class EtudiantController extends Controller
             'message' => 'Etudiant supprimé avec succès',
         ], 200);
     }
+    
 }

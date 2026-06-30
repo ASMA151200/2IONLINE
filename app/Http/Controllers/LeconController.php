@@ -25,15 +25,7 @@ class LeconController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Ajouter une lecon
      */
     public function store(StoreLeconRequest $request )
     {
@@ -61,8 +53,6 @@ class LeconController extends Controller
         ], 201);
     }
 
-
-
     /**
      * Afficher une lecon
      */
@@ -72,14 +62,6 @@ class LeconController extends Controller
             'success' => true,
             'data' => $lecon->load('module')
         ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Lecon $lecon)
-    {
-        //
     }
 
     /**
@@ -109,7 +91,7 @@ class LeconController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Supprimer une lecon
      */
     public function destroy(Lecon $lecon)
     {

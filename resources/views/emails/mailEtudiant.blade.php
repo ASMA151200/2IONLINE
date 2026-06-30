@@ -68,8 +68,6 @@
             </p>
         </div>
 
-
-
         <div class="section modules">
             <h3>📦 Formations que vous avez inscrit</h3>
             @forelse($etudiant->formations as $formation)

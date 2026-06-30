@@ -52,6 +52,61 @@ class ExerciceService
         return $exercice->load('questions.choix');
     }
 
+    // Mettre à jour un exercice avec ses questions et choix
+    public function update(Exercice $exercice, array $data): Exercice
+    {
+        // Mettre à jour les champs de l'exercice
+        $exercice->update([
+            'titre'       => $data['titre'] ?? $exercice->titre,
+            'description' => $data['description'] ?? $exercice->description,
+            'type'        => $data['type'] ?? $exercice->type,
+            'duree'       => $data['duree'] ?? $exercice->duree,
+            'note_max'    => $data['note_max'] ?? $exercice->note_max,
+        ]);
+
+        // Mettre à jour les questions si fournies
+        if (isset($data['questions'])) {
+            // Supprimer les questions (et leurs choix via cascade) absentes du payload
+            $questionIdsPayload = collect($data['questions'])->pluck('id')->filter();
+            $exercice->questions()->whereNotIn('id', $questionIdsPayload)->delete();
+
+            foreach ($data['questions'] as $index => $questionData) {
+                // Update ou create selon présence de l'id
+                $question = $exercice->questions()->updateOrCreate(
+                    ['id' => $questionData['id'] ?? null],
+                    [
+                        'contenu' => $questionData['contenu'],
+                        'type'    => $questionData['type'],
+                        'points'  => $questionData['points'] ?? 1,
+                        'ordre'   => $questionData['ordre'] ?? $index,
+                    ]
+                );
+
+                // Mettre à jour les choix si QCM
+                if ($questionData['type'] === 'qcm' && isset($questionData['choix'])) {
+                    $choixIdsPayload = collect($questionData['choix'])->pluck('id')->filter();
+                    $question->choix()->whereNotIn('id', $choixIdsPayload)->delete();
+
+                    foreach ($questionData['choix'] as $i => $choixData) {
+                        $question->choix()->updateOrCreate(
+                            ['id' => $choixData['id'] ?? null],
+                            [
+                                'contenu'     => $choixData['contenu'],
+                                'est_correct' => $choixData['est_correct'],
+                                'ordre'       => $choixData['ordre'] ?? $i,
+                            ]
+                        );
+                    }
+                } else {
+                    // Si le type n'est plus QCM, supprimer les anciens choix
+                    $question->choix()->delete();
+                }
+            }
+        }
+
+        return $exercice->load('questions.choix');
+    }
+
     // Soumettre les réponses d'un etudiant
     public function soumettre(Exercice $exercice, int $userId, array $reponses): array
     {

@@ -38,11 +38,10 @@ class ExerciceController extends Controller
                 'message' => 'Exercice créé avec succès',
                 'data'    => $exercice
             ], 201);
-
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'une erreur inattendue est survenue',
+                'error' => $e->getMessage()
             ], 422);
         }
     }
@@ -53,6 +52,18 @@ class ExerciceController extends Controller
         return response()->json([
             'success' => true,
             'data'    => $exercice->load('questions.choix')
+        ]);
+    }
+
+    //modifier un exercice
+    public function update(UpdateExerciceRequest $request, Exercice $exercice)
+    {
+        $exercice = $this->exerciceService->update($exercice, $request->validated());
+
+        return response()->json([
+            'success' => true,
+            'message'  => 'Exercice mis à jour avec succès.',
+            'data' => $exercice,
         ]);
     }
 
@@ -86,8 +97,8 @@ class ExerciceController extends Controller
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Une erreur inattendue est survenue',
+                'error' => $e->getMessage()
             ], 422);
         }
     }

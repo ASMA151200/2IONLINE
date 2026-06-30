@@ -54,7 +54,7 @@
 
         <div class="code">{{ $code }}</div>
 
-        <p style="text-align: center; color: #6b7280;">Ce code expire dans <strong>15 minutes</strong>.</p>
+        <p style="text-align: center; color: #6b7280;">Ce code expire dans <strong>5 minutes</strong>.</p>
         <p style="color: red; text-align: center;">Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
 
         <div class="footer">

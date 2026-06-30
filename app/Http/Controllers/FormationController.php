@@ -23,14 +23,6 @@ class FormationController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Creer une formation
      */
     public function store(StoreFormationRequest $request)
@@ -52,8 +44,8 @@ class FormationController extends Controller
                 $data['image'] = $request->file('image');
             }
 
-            $data['user_id'] = $request->user()->id; // si user s'est authentifie
-            //$data['user_id'] = $request->user_id; // si user ne s'est pas authentifie
+            //recuperation de id du user qui fait cette ajout de formation
+            $data['user_id'] = $request->user()->id;
 
             $formation = $this->formationService->create($data);
             return response()->json([
@@ -63,7 +55,6 @@ class FormationController extends Controller
             ], 201);
 
         }catch(\Exception $e){
-
             return response()->json([
                 'message' => 'une erreur inattendue est survenue',
                 'error' => $e->getMessage()
@@ -82,14 +73,6 @@ class FormationController extends Controller
             'success' => true,
             'data'    => $formation->load('modules.lecons')
         ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Formation $formation)
-    {
-        //
     }
 
     /**

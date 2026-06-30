@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Mail;
 class AuthService
 {
 
-    //fonction register(inscription)
+    //fonction register (inscription)
     public function register(array $data)
     {
         $user = User::create([

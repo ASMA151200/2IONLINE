@@ -26,14 +26,6 @@ class FormateurController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Creer un formateur
      */
     public function store(StoreFormateurRequest $request)
@@ -60,13 +52,6 @@ class FormateurController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Formateur $formateur)
-    {
-        //
-    }
 
     /**
      * Update formateur
@@ -81,7 +66,6 @@ class FormateurController extends Controller
             'data' => $formateur
         ], 201);
 
-
     }
 
     /**
@@ -93,7 +77,7 @@ class FormateurController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' =>'Formateur supprimé'
+            'message' =>'Formateur supprimé avec succès'
         ], 201);
 
     }
