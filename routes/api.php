@@ -19,6 +19,8 @@ use App\Http\Controllers\ResultatController;
 use App\Http\Controllers\ActusController;
 use App\Http\Controllers\OpportuniteController;
 use App\Http\Controllers\PaiementController;
+use App\Http\Controllers\Api\{AlerteController, PushSubscriptionController};
+
 
 
 Route::prefix('v1')->group(function (){
@@ -85,8 +87,17 @@ Route::prefix('v1')->group(function (){
         //paiements
         Route::apiResource('paiements', PaiementController::class);
 
+        //alerteRoute::middleware('role:formateur')->group(function () {
+        Route::post('/alertes', [AlerteController::class, 'store']);
+        Route::get('/alertes', [AlerteController::class, 'index']);
 
+        Route::post('/push-subscribe', [PushSubscriptionController::class, 'store']);
+        Route::delete('/push-subscribe', [PushSubscriptionController::class, 'destroy']);
     });
+
+
+
+    
 
 
 });
