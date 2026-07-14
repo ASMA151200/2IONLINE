@@ -60,6 +60,7 @@ class EtudiantService
         });
     }
 
+    // Afficher un etudiant
     public function show(Etudiant $etudiant): Etudiant
     {
         return $etudiant->load(['user', 'formations']);
@@ -98,6 +99,17 @@ class EtudiantService
             $etudiant->deleteOrFail();
             $user->deleteOrFail();
         });
+    }
+
+    // Voir ses cours (étudiant connecté)
+    public function mesCours(User $user)
+    {
+        $etudiant = $user->etudiant()->with([
+            'formations.modules.lecons',
+            'formations.categories'
+        ])->firstOrFail();
+
+        return $etudiant->formations;
     }
 
 }

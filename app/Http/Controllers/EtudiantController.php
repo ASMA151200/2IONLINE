@@ -41,9 +41,9 @@ class EtudiantController extends Controller
 
     }
 
-    /**
-     * Afficher un etudiant
-     */
+
+    // Afficher un etudiant
+
     public function show(Etudiant $etudiant)
     {
         $etudiant = $this->etudiantService->show($etudiant);
@@ -77,5 +77,16 @@ class EtudiantController extends Controller
             'message' => 'Etudiant supprimé avec succès',
         ], 200);
     }
-    
+
+    // Voir ses cours
+    public function mesCours(Request $request)
+    {
+        $formations = $this->etudiantService->mesCours($request->user());
+
+        return response()->json([
+            'success' => true,
+            'data'    => $formations
+        ]);
+    }
+
 }

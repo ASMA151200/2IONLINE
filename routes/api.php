@@ -48,7 +48,7 @@ Route::prefix('v1')->group(function (){
             Route::put('/exercices/{exercice}',  [ExerciceController::class, 'update']);
             Route::delete('/exercices/{exercice}', [ExerciceController::class, 'destroy']);
 
-            // Corriger une réponse ouverte
+            // Corriger une question ouverte
             Route::put('/reponses/{reponse}/corriger', [ExerciceController::class, 'corriger']);
         });
 
@@ -60,7 +60,7 @@ Route::prefix('v1')->group(function (){
 
         //Etudiant uniquement
         Route::middleware('role:etudiant')->group(function () {
-            Route::get('/mes-inscriptions', [ExerciceController::class, 'mesInscriptions']);
+            Route::get('/mes-cours', [EtudiantController::class, 'mesCours']);
             Route::post('/exercices/{exercice}/soumettre', [ExerciceController::class, 'soumettre']);
         });
 

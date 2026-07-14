@@ -21,7 +21,7 @@ class EtudiantCreeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Bienvenue sur 2IOnline - Vos identifiants de connexion',
+            subject: 'Bienvenue chez 2i Online – Votre première leçon vous attend !',
         );
     }
 
