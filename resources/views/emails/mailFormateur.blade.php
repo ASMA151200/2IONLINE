@@ -170,7 +170,7 @@
   <!-- Footer -->
   <tr>
     <td style="background:#f5f5f5;padding:16px 36px;text-align:center;border-top:1px solid #e0e0e0;">
-      <p style="font-size:11px;color:#aaa;margin:0;">© 2025 2i Online — Incub Institut, Bargny, Sénégal · <a href="{{ $lien_desabonnement ?? '#' }}" style="color:#c9a227;text-decoration:none;">Se désabonner</a></p>
+      <p style="font-size:11px;color:#aaa;margin:0;"> Copyright © 2026 2i Online — Incub Institut, Bargny, Sénégal · <a href="{{ $lien_desabonnement ?? '#' }}" style="color:#c9a227;text-decoration:none;">Se désabonner</a></p>
     </td>
   </tr>
 
