@@ -102,11 +102,11 @@ class EtudiantService
     }
 
     // Voir ses cours (étudiant connecté)
-    public function mesCours(User $user)
+    public function voirCours(User $user)
     {
         $etudiant = $user->etudiant()->with([
             'formations.modules.lecons',
-            'formations.categories'
+            'formations.categorie'
         ])->firstOrFail();
 
         return $etudiant->formations;

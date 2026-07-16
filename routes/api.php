@@ -60,7 +60,7 @@ Route::prefix('v1')->group(function (){
 
         //Etudiant uniquement
         Route::middleware('role:etudiant')->group(function () {
-            Route::get('/mes-cours', [EtudiantController::class, 'mesCours']);
+            Route::get('/mescours', [EtudiantController::class, 'voirCours']);
             Route::post('/exercices/{exercice}/soumettre', [ExerciceController::class, 'soumettre']);
         });
 

@@ -79,9 +79,9 @@ class EtudiantController extends Controller
     }
 
     // Voir ses cours
-    public function mesCours(Request $request)
+    public function voirCours(Request $request)
     {
-        $formations = $this->etudiantService->mesCours($request->user());
+        $formations = $this->etudiantService->voirCours($request->user());
 
         return response()->json([
             'success' => true,
