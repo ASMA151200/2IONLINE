@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.log
 .DS_Store
 .env
@@ -22,3 +23,25 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+=======
+
+cat > .gitignore << 'EOF'
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+EOF
+>>>>>>> gestion_lecon
