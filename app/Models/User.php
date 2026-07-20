@@ -2,14 +2,7 @@
 
 namespace App\Models;
 
-<<<<<<< HEAD
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-=======
-
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,16 +10,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
->>>>>>> gestion_lecon
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-<<<<<<< HEAD
     use HasFactory, Notifiable;
-=======
-    use HasApiTokens, HasFactory, Notifiable;
->>>>>>> gestion_lecon
 
     /**
      * The attributes that are mass assignable.
@@ -34,11 +22,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-<<<<<<< HEAD
-        'name',
-        'email',
-        'password',
-=======
+
         'prenom',
         'nom',
         'telephone',
@@ -46,7 +30,6 @@ class User extends Authenticatable
         'password',
         'photo',
         'role'
->>>>>>> gestion_lecon
     ];
 
     /**
@@ -71,8 +54,6 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-<<<<<<< HEAD
-=======
 
 
     // Relations
@@ -116,5 +97,4 @@ class User extends Authenticatable
         return $this->hasOne(Etudiant::class);
     }
 
->>>>>>> gestion_lecon
 }
