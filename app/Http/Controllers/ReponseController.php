@@ -8,59 +8,42 @@ use App\Http\Requests\UpdateReponseRequest;
 
 class ReponseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return response()->json([
+            'data' => Reponse::with('question')->orderBy('ordre')->get()
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreReponseRequest $request)
     {
-        //
+        $reponse = Reponse::create($request->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Réponse créée',
+            'data' => $reponse
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Reponse $reponse)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Reponse $reponse)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateReponseRequest $request, Reponse $reponse)
     {
-        //
+        $reponse->update($request->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Réponse modifiée',
+            'data' => $reponse
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Reponse $reponse)
     {
-        //
+        $reponse->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Réponse supprimée'
+        ]);
     }
 }

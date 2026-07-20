@@ -2,28 +2,28 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdatePaiementRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+
+            'montant' => 'sometimes|numeric|min:0',
+
+            'methode' => 'sometimes|in:Wave,Orange Money,Free Money,Virement,CB',
+
+            'statut' => 'sometimes|in:en attente,confirme,echec',
+
+            'date' => 'sometimes|date',
+
+            'formation_id' => 'sometimes|exists:formations,id',
         ];
     }
 }

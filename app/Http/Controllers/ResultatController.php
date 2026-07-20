@@ -4,63 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Models\Resultat;
 use App\Http\Requests\StoreResultatRequest;
-use App\Http\Requests\UpdateResultatRequest;
 
 class ResultatController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return response()->json([
+            'data' => Resultat::with(['user','examen'])->latest()->get()
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreResultatRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        $data['user_id'] = auth()->id();
+
+        $resultat = Resultat::create($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Résultat enregistré',
+            'data' => $resultat
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Resultat $resultat)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Resultat $resultat)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateResultatRequest $request, Resultat $resultat)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Resultat $resultat)
-    {
-        //
+        return response()->json([
+            'data' => $resultat->load(['user','examen'])
+        ]);
     }
 }

@@ -2,28 +2,33 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePaiementRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+
+            'montant' => 'required|numeric|min:0',
+
+            'methode' => 'required|in:Wave,Orange Money,Free Money,Virement,CB',
+
+            'date' => 'required|date',
+
+            'formation_id' => 'required|exists:formations,id',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'methode.in' => 'Méthode de paiement invalide',
         ];
     }
 }

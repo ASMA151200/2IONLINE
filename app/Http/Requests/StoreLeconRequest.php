@@ -26,8 +26,8 @@ class StoreLeconRequest extends FormRequest
             'module_id' =>'required|exists:modules,id',
             'titre' =>'required|string|max:255',
             'contenu' =>'required|string',
-            'video' =>'nullable|file|mimes:mp4,mov,avi,webm|51200',
-            'document' =>'nullable|file|mimes:pdf,docs,doc,pptx,ppt|max:20480',
+            'video' => 'nullable|file|mimes:mp4,mov,avi,webm,mpeg,mpg|max:51200',
+            'document' =>'nullable|file|mimes:pdf,docx,doc,pptx,ppt|max:20480',
             'ordre' =>'required|integer|min:1'
 
         ];

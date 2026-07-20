@@ -2,28 +2,42 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProgressionRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+
+            'statut'=>
+            'required|in:commencer,en cours,termine',
+
+            'lecon_id'=>
+            'required|exists:lecons,id',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+
+            'statut.required'=>
+            'Le statut est obligatoire',
+
+            'statut.in'=>
+            'Statut invalide',
+
+            'lecon_id.required'=>
+            'La leçon est obligatoire',
+
+            'lecon_id.exists'=>
+            'Leçon introuvable'
         ];
     }
 }

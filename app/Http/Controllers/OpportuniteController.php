@@ -5,62 +5,72 @@ namespace App\Http\Controllers;
 use App\Models\Opportunite;
 use App\Http\Requests\StoreOpportuniteRequest;
 use App\Http\Requests\UpdateOpportuniteRequest;
+use Illuminate\Support\Facades\Storage;
 
 class OpportuniteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return response()->json([
+            'data' => Opportunite::latest()->get()
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreOpportuniteRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        if ($request->hasFile('documents')) {
+            $data['documents'] = $request->file('documents')
+                ->store('opportunites/docs', 'public');
+        }
+
+        $opp = Opportunite::create($data);
+
+        return response()->json([
+            'message' => 'Opportunité créée',
+            'data' => $opp
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Opportunite $opportunite)
     {
-        //
+        return response()->json([
+            'data' => $opportunite
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Opportunite $opportunite)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateOpportuniteRequest $request, Opportunite $opportunite)
     {
-        //
+        $data = $request->validated();
+
+        if ($request->hasFile('documents')) {
+            if ($opportunite->documents) {
+                Storage::disk('public')->delete($opportunite->documents);
+            }
+
+            $data['documents'] = $request->file('documents')
+                ->store('opportunites/docs', 'public');
+        }
+
+        $opportunite->update($data);
+
+        return response()->json([
+            'message' => 'Opportunité mise à jour',
+            'data' => $opportunite
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Opportunite $opportunite)
     {
-        //
+        if ($opportunite->documents) {
+            Storage::disk('public')->delete($opportunite->documents);
+        }
+
+        $opportunite->delete();
+
+        return response()->json([
+            'message' => 'Opportunité supprimée'
+        ]);
     }
 }

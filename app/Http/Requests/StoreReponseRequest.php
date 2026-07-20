@@ -2,19 +2,16 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreReponseRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
+<<<<<<< HEAD
     /**
      * Get the validation rules that apply to the request.
      *
@@ -38,3 +35,19 @@ class StoreReponseRequest extends FormRequest
     }
 
 }
+=======
+    public function rules(): array
+    {
+        return [
+
+            'texte' => 'required|string',
+
+            'est_correct' => 'required|boolean',
+
+            'ordre' => 'required|integer',
+
+            'question_id' => 'required|exists:questions,id',
+        ];
+    }
+}
+>>>>>>> e3871b226d875bbe91500d6a0b07ef7e9e9c49ca
