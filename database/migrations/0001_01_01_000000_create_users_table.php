@@ -13,12 +13,10 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-<<<<<<< HEAD
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-=======
             $table->string('prenom');
             $table->string('nom');
             $table->string('telephone');
@@ -27,7 +25,6 @@ return new class extends Migration
             $table->string('password');
             $table->string('photo')->nullable();
             $table->enum('role', ['admin', 'formateur', 'etudiant'])->default('etudiant');
->>>>>>> gestion_lecon
             $table->rememberToken();
             $table->timestamps();
         });
