@@ -21,6 +21,13 @@ class ExerciceController extends Controller
     {
         $leconId = $request->query('lecon_id');
 
+        if (!$leconId) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Le paramètre lecon_id est requis'
+        ], 422);
+        }
+
         return response()->json([
             'success' => true,
             'data'    => $this->exerciceService->getByLecon($leconId)
@@ -31,6 +38,7 @@ class ExerciceController extends Controller
     public function store(StoreExerciceRequest $request)
     {
         try {
+
             $exercice = $this->exerciceService->create($request->validated());
 
             return response()->json([
