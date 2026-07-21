@@ -11,11 +11,10 @@ class StoreReponseRequest extends FormRequest
         return true;
     }
 
-<<<<<<< HEAD
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, array<mixed>|string>
      */
     public function rules(): array{
         return [
@@ -23,6 +22,10 @@ class StoreReponseRequest extends FormRequest
         'reponses.*.question_id'    => 'required|exists:exercice_questions,id',
         'reponses.*.choix_id'       => 'nullable|exists:choix,id',
         'reponses.*.reponse_texte'  => 'nullable|string',
+        'texte'                     => 'required|string',
+        'est_correct'               => 'required|boolean',
+        'ordre'                     => 'required|integer',
+        'question_id'               => 'required|exists:questions,id',
     ];
     }
 
@@ -34,20 +37,5 @@ class StoreReponseRequest extends FormRequest
         ];
     }
 
+
 }
-=======
-    public function rules(): array
-    {
-        return [
-
-            'texte' => 'required|string',
-
-            'est_correct' => 'required|boolean',
-
-            'ordre' => 'required|integer',
-
-            'question_id' => 'required|exists:questions,id',
-        ];
-    }
-}
->>>>>>> e3871b226d875bbe91500d6a0b07ef7e9e9c49ca
