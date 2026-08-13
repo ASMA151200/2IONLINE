@@ -59,7 +59,7 @@
               <tr>
                 <td style="padding:4px 0;font-size:13px;color:#444;">
                   <span style="color:#c9a227;font-weight:700;display:inline-block;min-width:130px;">Espace Formation :</span>
-                  <a href="{{ $lien_plateforme ?? '#' }}" style="color:#1b3a6b;text-decoration:underline;">Accéder à la plateforme</a>
+                  <a href="https://www.2i-online.com/" style="color:#1b3a6b;text-decoration:underline;">Accéder à la plateforme</a>
                 </td>
               </tr>
               <tr>
