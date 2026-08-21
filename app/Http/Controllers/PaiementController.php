@@ -28,14 +28,20 @@ class PaiementController extends Controller
         // utilisateur connecté
         $data['user_id'] = auth()->id();
 
-        // statut par défaut
-        $data['statut'] = 'confirme';
+        // SÉCURITÉ: un paiement créé ici (avant redirection vers PayDunya)
+        // ne doit JAMAIS être marqué "confirme" immédiatement — c'est
+        // uniquement PayDunyaController::ipn() (webhook vérifié) qui peut
+        // le faire, après confirmation réelle du paiement. Sans ce
+        // changement, n'importe quel appel à cette route créait un
+        // paiement "confirmé" sans qu'aucun argent n'ait réellement changé
+        // de main.
+        $data['statut'] = 'en attente';
 
         $paiement = $this->paiementService->create($data);
 
         return response()->json([
             'success' => true,
-            'message' => 'Paiement effectué avec succès',
+            'message' => 'Paiement enregistré, en attente de confirmation',
             'data' => $paiement->load(['user', 'formation'])
         ], 201);
     }

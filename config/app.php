@@ -55,6 +55,12 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
+    | URL du frontend Next.js — utilisée pour construire les URLs de
+    | redirection après paiement (retour PayDunya : return_url/cancel_url).
+    */
+    'frontend_url' => env('FRONTEND_URL', 'https://www.2i-online.com'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

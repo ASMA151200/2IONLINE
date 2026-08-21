@@ -19,6 +19,7 @@ use App\Http\Controllers\ActusController;
 use App\Http\Controllers\OpportuniteController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\Api\{AlerteController, PushSubscriptionController};
+use App\Http\Controllers\PayDunyaController;
 
 
 
@@ -31,6 +32,11 @@ Route::prefix('v1')->group(function (){
     // reinitialisation et mot de passe oublie
     Route::post('/forgotPassword', [AuthController::class, 'forgotPassword']);
     Route::post('/resetPassword',  [AuthController::class, 'resetPassword']);
+
+    // IPN PayDunya — appelée directement par les serveurs PayDunya, sans
+    // session utilisateur. DOIT rester hors du groupe auth:sanctum, sinon
+    // toutes les notifications de paiement seraient rejetées avec une 401.
+    Route::post('/webhooks/paydunya', [PayDunyaController::class, 'ipn'])->name('paydunya.ipn');
 
     //Lecture publique (Voir les Categories et Formations disponibles)
     Route::apiResource('categories', CategorieController::class)->only(['index', 'show']);
@@ -110,6 +116,7 @@ Route::prefix('v1')->group(function (){
 
         //paiements
         Route::apiResource('paiements', PaiementController::class);
+        Route::post('/paiements/{paiement}/paydunya', [PayDunyaController::class, 'initiate']);
 
         //alerteRoute::middleware('role:formateur')->group(function () {
         Route::post('/alertes', [AlerteController::class, 'store']);
