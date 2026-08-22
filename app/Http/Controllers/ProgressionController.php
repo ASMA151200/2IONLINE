@@ -16,9 +16,9 @@ class ProgressionController extends Controller
     ){}
 
     /**
-     * liste
+     * liste (filtrable par user_id et/ou lecon_id)
      */
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         return response()->json([
             'success'=>true,
@@ -26,7 +26,7 @@ class ProgressionController extends Controller
             'data'=>
             $this
             ->progressionService
-            ->getAll()
+            ->getAll($request->only(['user_id', 'lecon_id']))
         ]);
     }
 

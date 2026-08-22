@@ -7,10 +7,19 @@ use App\Http\Requests\StoreResultatRequest;
 
 class ResultatController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
+        $query = Resultat::with(['user', 'examen']);
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
+        }
+        if ($request->filled('examen_id')) {
+            $query->where('examen_id', $request->input('examen_id'));
+        }
+
         return response()->json([
-            'data' => Resultat::with(['user','examen'])->latest()->get()
+            'data' => $query->latest()->get()
         ]);
     }
 

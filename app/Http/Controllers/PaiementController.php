@@ -13,11 +13,11 @@ class PaiementController extends Controller
         protected PaiementService $paiementService
     ) {}
 
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         return response()->json([
             'success' => true,
-            'data' => $this->paiementService->getAll()
+            'data' => $this->paiementService->getAll($request->only(['user_id', 'formation_id']))
         ]);
     }
 

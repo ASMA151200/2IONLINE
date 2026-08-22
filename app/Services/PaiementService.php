@@ -6,12 +6,18 @@ use App\Models\Paiement;
 
 class PaiementService
 {
-    public function getAll()
+    public function getAll(array $filters = [])
     {
-        return Paiement::with([
-            'user',
-            'formation'
-        ])->latest()->get();
+        $query = Paiement::with(['user', 'formation']);
+
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+        if (!empty($filters['formation_id'])) {
+            $query->where('formation_id', $filters['formation_id']);
+        }
+
+        return $query->latest()->get();
     }
 
     public function create(array $data): Paiement

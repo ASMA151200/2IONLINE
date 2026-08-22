@@ -14,15 +14,15 @@ class InscriptionController extends Controller
     ){}
 
     /**
-     * liste
+     * liste (filtrable par user_id et/ou formation_id)
      */
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         return response()->json([
             'success'=>true,
             'data'=>$this
                     ->inscriptionService
-                    ->getAll()
+                    ->getAll($request->only(['user_id', 'formation_id']))
         ]);
     }
 

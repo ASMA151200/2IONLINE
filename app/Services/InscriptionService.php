@@ -6,13 +6,19 @@ use App\Models\Inscription;
 
 class InscriptionService
 {
-    //liste
-    public function getAll()
+    //liste (filtrable par user_id et/ou formation_id)
+    public function getAll(array $filters = [])
     {
-        return Inscription::with([
-            'user',
-            'formation'
-        ])->latest()->get();
+        $query = Inscription::with(['user', 'formation']);
+
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+        if (!empty($filters['formation_id'])) {
+            $query->where('formation_id', $filters['formation_id']);
+        }
+
+        return $query->latest()->get();
     }
 
 

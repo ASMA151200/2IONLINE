@@ -6,15 +6,19 @@ use App\Models\Progression;
 
 class ProgressionService
 {
-    //liste
-    public function getAll()
+    //liste (filtrable par user_id et/ou lecon_id)
+    public function getAll(array $filters = [])
     {
-        return Progression::with([
-            'user',
-            'lecon'
-        ])
-        ->latest()
-        ->get();
+        $query = Progression::with(['user', 'lecon']);
+
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+        if (!empty($filters['lecon_id'])) {
+            $query->where('lecon_id', $filters['lecon_id']);
+        }
+
+        return $query->latest()->get();
     }
 
 
