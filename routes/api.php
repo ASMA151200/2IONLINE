@@ -21,6 +21,11 @@ use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\Api\{AlerteController, PushSubscriptionController};
 use App\Http\Controllers\PayDunyaController;
 use App\Http\Controllers\DirectController;
+use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\NoteController;
+use App\Http\Controllers\FavoriController;
+use App\Http\Controllers\ForumController;
 
 
 
@@ -42,6 +47,7 @@ Route::prefix('v1')->group(function (){
     //Lecture publique (Voir les Categories et Formations disponibles)
     Route::apiResource('categories', CategorieController::class)->only(['index', 'show']);
     Route::apiResource('formations', FormationController::class)->only(['index', 'show']);
+    Route::get('/search', [SearchController::class, 'index']);
 
     //Routes protegees (l'utilisateur doit etre connecte)
     Route::middleware('auth:sanctum')->group(function () {
@@ -97,6 +103,13 @@ Route::prefix('v1')->group(function (){
             Route::post('/formateurs/{formateur}/reset-password', [FormateurController::class, 'resetPassword']);
             Route::put('/etudiants/{etudiant}/toggle-active', [EtudiantController::class, 'toggleActive']);
             Route::post('/etudiants/{etudiant}/reset-password', [EtudiantController::class, 'resetPassword']);
+
+            // Analytics (agrégées depuis les données existantes, aucune
+            // nouvelle table)
+            Route::get('/analytics/admin', [AnalyticsController::class, 'admin']);
+            Route::get('/analytics/formations', [AnalyticsController::class, 'allFormations']);
+            Route::get('/analytics/formations/{formation}', [AnalyticsController::class, 'formation']);
+            Route::get('/analytics/students', [AnalyticsController::class, 'students']);
         });
 
         //Etudiant uniquement
@@ -108,6 +121,20 @@ Route::prefix('v1')->group(function (){
 
         //inscriptions
         Route::apiResource('inscriptions', InscriptionController::class);
+
+        //notes personnelles et favoris (chaque utilisateur gère les siens)
+        Route::apiResource('notes', NoteController::class)->except(['show']);
+        Route::apiResource('favoris', FavoriController::class)->only(['index', 'store', 'destroy']);
+
+        //forum (discussions par formation)
+        Route::get('/forum/posts', [ForumController::class, 'index']);
+        Route::post('/forum/posts', [ForumController::class, 'store']);
+        Route::get('/forum/posts/{post}', [ForumController::class, 'show']);
+        Route::delete('/forum/posts/{post}', [ForumController::class, 'destroy']);
+        Route::post('/forum/posts/{post}/replies', [ForumController::class, 'storeReply']);
+        Route::delete('/forum/replies/{reply}', [ForumController::class, 'destroyReply']);
+        Route::post('/forum/posts/{post}/like', [ForumController::class, 'toggleLikePost']);
+        Route::post('/forum/replies/{reply}/like', [ForumController::class, 'toggleLikeReply']);
 
         
 
