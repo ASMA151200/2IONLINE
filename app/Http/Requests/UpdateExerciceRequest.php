@@ -30,7 +30,7 @@ class UpdateExerciceRequest extends FormRequest
             'note_max'        => 'sometimes|numeric|min:0',
 
             'questions'         => 'sometimes|array',
-            'questions.*.id'    => 'nullable|integer|exists:questions,id',
+            'questions.*.id'    => 'nullable|integer|exists:exercice_questions,id',
             'questions.*.contenu'     => 'required_with:questions|string',
             'questions.*.type'        => 'required_with:questions|in:qcm,ouvert',
             'questions.*.points'      => 'nullable|numeric|min:0',
