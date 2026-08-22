@@ -50,7 +50,7 @@ class ExamenController extends Controller
             'success' => true,
             'data' => $examen->load([
                 'formation',
-                'questions',
+                'questions.choix',
                 'resultats'
             ])
         ]);
