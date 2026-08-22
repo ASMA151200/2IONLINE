@@ -25,14 +25,14 @@ class UpdateExerciceRequest extends FormRequest
         return [
             'titre'           => 'sometimes|string|max:255',
             'description'     => 'nullable|string',
-            'type'            => 'sometimes|in:qcm,texte,mixte',
+            'type'            => 'sometimes|in:qcm,ouvert,mixte',
             'duree'           => 'nullable|integer|min:1',
             'note_max'        => 'sometimes|numeric|min:0',
 
             'questions'         => 'sometimes|array',
             'questions.*.id'    => 'nullable|integer|exists:questions,id',
             'questions.*.contenu'     => 'required_with:questions|string',
-            'questions.*.type'        => 'required_with:questions|in:qcm,texte',
+            'questions.*.type'        => 'required_with:questions|in:qcm,ouvert',
             'questions.*.points'      => 'nullable|numeric|min:0',
             'questions.*.ordre'       => 'nullable|integer|min:0',
 
@@ -49,7 +49,7 @@ class UpdateExerciceRequest extends FormRequest
     {
         return [
             'titre.string'        => 'Le titre doit être une chaîne de caractères.',
-            'type.in'             => 'Le type doit être : qcm, texte ou mixte.',
+            'type.in'             => 'Le type doit être : qcm, ouvert ou mixte.',
             'duree.integer'       => 'La durée doit être un entier.',
             'note_max.numeric'    => 'La note maximale doit être un nombre.',
 
@@ -57,7 +57,7 @@ class UpdateExerciceRequest extends FormRequest
             'questions.*.id.exists'         => 'Une question fournie est introuvable.',
             'questions.*.contenu.required_with'       => 'Le contenu de chaque question est obligatoire.',
             'questions.*.type.required_with'          => 'Le type de chaque question est obligatoire.',
-            'questions.*.type.in'                     => 'Le type de question doit être : qcm ou texte.',
+            'questions.*.type.in'                     => 'Le type de question doit être : qcm ou ouvert.',
 
             'questions.*.choix.required_if'           => 'Les choix sont obligatoires pour une question QCM.',
             'questions.*.choix.*.id.exists'           => 'Un choix fourni est introuvable.',

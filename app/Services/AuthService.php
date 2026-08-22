@@ -22,7 +22,12 @@ class AuthService
             'telephone' => $data['telephone'],
             'email' => $data['email'],
             'password' => $data['password'],
-            'role' => UserRole::admin->value
+            // BUG CRITIQUE CORRIGÉ: cette ligne forçait TOUT nouveau compte
+            // (inscription publique) au rôle admin. Un utilisateur qui
+            // s'inscrit lui-même doit être etudiant — les rôles admin et
+            // formateur sont créés uniquement via les routes protégées
+            // /v1/formateurs et /v1/etudiants par un administrateur.
+            'role' => UserRole::etudiant->value
         ]);
         $token = $user->createToken('auth_token')->plainTextToken;
         return [

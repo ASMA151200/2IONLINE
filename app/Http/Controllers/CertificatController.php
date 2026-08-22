@@ -115,8 +115,6 @@ class CertificatController extends Controller
     if (!$certificat->fichier_pdf || !Storage::disk('public')->exists($certificat->fichier_pdf)) {
         abort(404, 'Fichier introuvable');
     }
-    
-    dd($certificat->fichier_pdf);
 
     return Storage::disk('public')->download(
         $certificat->fichier_pdf,

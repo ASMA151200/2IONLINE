@@ -20,6 +20,7 @@ use App\Http\Controllers\OpportuniteController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\Api\{AlerteController, PushSubscriptionController};
 use App\Http\Controllers\PayDunyaController;
+use App\Http\Controllers\DirectController;
 
 
 
@@ -53,6 +54,10 @@ Route::prefix('v1')->group(function (){
         Route::get('/exercices/{exercice}', [ExerciceController::class, 'show']);
         Route::get('/exercices/{exercice}/resultats', [ExerciceController::class, 'resultats']);
 
+        // Tous les connectés — voir les sessions live (étudiants inclus)
+        Route::get('/directs', [DirectController::class, 'index']);
+        Route::get('/directs/{direct}', [DirectController::class, 'show']);
+
         // Admin et Formateur
         Route::middleware('role:admin,formateur')->group(function () {
 
@@ -68,6 +73,11 @@ Route::prefix('v1')->group(function (){
 
             // Corriger une question ouverte
             Route::put('/reponses/{reponse}/corriger', [ExerciceController::class, 'corriger']);
+
+            // Sessions live : créer, modifier, supprimer
+            Route::post('/directs', [DirectController::class, 'store']);
+            Route::put('/directs/{direct}', [DirectController::class, 'update']);
+            Route::delete('/directs/{direct}', [DirectController::class, 'destroy']);
         });
 
         //Admin uniquement
