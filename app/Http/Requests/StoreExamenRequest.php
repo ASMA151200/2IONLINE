@@ -25,6 +25,21 @@ class StoreExamenRequest extends FormRequest
             'bareme_pts' => 'required|integer|min:1',
 
             'formation_id' => 'required|exists:formations,id',
+
+            // Questions (optionnel à la création — un examen peut aussi
+            // être créé "vide" puis complété via /v1/questions séparément,
+            // mais la structure imbriquée est recommandée, comme pour les
+            // exercices).
+            'questions'                       => 'nullable|array|min:1',
+            'questions.*.contenu'             => 'required_with:questions|string',
+            'questions.*.type'                => 'required_with:questions|in:qcm,ouvert',
+            'questions.*.points'              => 'nullable|integer|min:1',
+            'questions.*.ordre'               => 'nullable|integer',
+
+            'questions.*.choix'                       => 'required_if:questions.*.type,qcm|array|min:2',
+            'questions.*.choix.*.contenu'             => 'required|string',
+            'questions.*.choix.*.est_correct'         => 'required|boolean',
+            'questions.*.choix.*.ordre'               => 'nullable|integer',
         ];
     }
 

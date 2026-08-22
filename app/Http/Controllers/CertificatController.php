@@ -3,14 +3,46 @@
 namespace App\Http\Controllers;
 
 use App\Models\Certificat;
+use App\Models\Formation;
+use App\Models\User;
 use App\Http\Requests\StoreCertificatRequest;
 use App\Http\Requests\UpdateCertificatRequest;
+use App\Services\CertificatGeneratorService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class CertificatController extends Controller
 {
+    public function __construct(protected CertificatGeneratorService $generator)
+    {
+    }
+
+    /**
+     * Génère automatiquement un certificat PDF côté serveur (admin/
+     * formateur uniquement) — alternative à l'upload manuel d'un PDF déjà
+     * préparé. NÉCESSITE `composer require barryvdh/laravel-dompdf` (voir
+     * app/Services/CertificatGeneratorService.php).
+     */
+    public function generate(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'formation_id' => 'required|exists:formations,id',
+        ]);
+
+        $user = User::findOrFail($data['user_id']);
+        $formation = Formation::findOrFail($data['formation_id']);
+
+        $certificat = $this->generator->generate($user, $formation);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Certificat généré avec succès',
+            'data' => $certificat->load(['user', 'formation']),
+        ], 201);
+    }
     /**
      * Liste des certificats
      */

@@ -47,6 +47,7 @@ Route::prefix('v1')->group(function (){
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
+        Route::put('/me', [AuthController::class, 'updateProfile']);
         Route::post('/changePassword', [AuthController::class, 'changePassword']);
 
         // Tous les connectés — voir exercices
@@ -84,6 +85,11 @@ Route::prefix('v1')->group(function (){
         Route::middleware('role:admin')->group(function () {
             Route::apiResource('formateurs', FormateurController::class); //creation de formateur
             Route::apiResource('etudiants', EtudiantController::class);  //creation d'etudiants
+
+            Route::put('/formateurs/{formateur}/toggle-active', [FormateurController::class, 'toggleActive']);
+            Route::post('/formateurs/{formateur}/reset-password', [FormateurController::class, 'resetPassword']);
+            Route::put('/etudiants/{etudiant}/toggle-active', [EtudiantController::class, 'toggleActive']);
+            Route::post('/etudiants/{etudiant}/reset-password', [EtudiantController::class, 'resetPassword']);
         });
 
         //Etudiant uniquement
@@ -112,11 +118,13 @@ Route::prefix('v1')->group(function (){
 
         //examens
         Route::apiResource('examens', ExamenController::class);
+        Route::post('/examens/{examen}/soumettre', [ExamenController::class, 'soumettre']);
 
         //certificats
         Route::get('/certificats/{certificat}/download', [CertificatController::class, 'download'])
        ->middleware('auth:sanctum');
         Route::apiResource('certificats', CertificatController::class);
+        Route::post('/certificats/generate', [CertificatController::class, 'generate']);
 
         //actus
         Route::apiResource('actus', ActusController::class);

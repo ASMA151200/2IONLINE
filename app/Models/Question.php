@@ -15,6 +15,7 @@ class Question extends Model
 
     protected $fillable = [
         'exercice_id',
+        'examen_id',
         'contenu',
         'type',
         'points',
@@ -24,6 +25,11 @@ class Question extends Model
     public function exercice(): BelongsTo
     {
         return $this->belongsTo(Exercice::class);
+    }
+
+    public function examen(): BelongsTo
+    {
+        return $this->belongsTo(Examen::class);
     }
 
     public function choix(): HasMany

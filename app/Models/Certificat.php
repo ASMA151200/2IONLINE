@@ -15,7 +15,6 @@ class Certificat extends Model
         'numero_certificat',
         'fichier_pdf',
         'date_obtention',
-        'date_expiration',
         'user_id',
         'formation_id',
     ];

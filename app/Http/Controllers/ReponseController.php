@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reponse;
-use App\Http\Requests\StoreReponseRequest;
+use App\Http\Requests\StoreSingleReponseRequest;
 use App\Http\Requests\UpdateReponseRequest;
 
 class ReponseController extends Controller
@@ -11,13 +11,16 @@ class ReponseController extends Controller
     public function index()
     {
         return response()->json([
-            'data' => Reponse::with('question')->orderBy('ordre')->get()
+            'data' => Reponse::with('question')->orderBy('created_at')->get()
         ]);
     }
 
-    public function store(StoreReponseRequest $request)
+    public function store(StoreSingleReponseRequest $request)
     {
-        $reponse = Reponse::create($request->validated());
+        $data = $request->validated();
+        $data['user_id'] = auth()->id();
+
+        $reponse = Reponse::create($data);
 
         return response()->json([
             'success' => true,

@@ -101,6 +101,25 @@ class EtudiantService
         });
     }
 
+    // Activer / désactiver le compte
+    public function toggleActive(Etudiant $etudiant): User
+    {
+        $user = $etudiant->user;
+        $user->update(['is_active' => !$user->is_active]);
+        return $user;
+    }
+
+    // Réinitialiser le mot de passe (génère et envoie par email)
+    public function resetPassword(Etudiant $etudiant): string
+    {
+        $password = Str::random(6);
+        $etudiant->user->update(['password' => Hash::make($password)]);
+
+        Mail::to($etudiant->user->email)->send(new EtudiantCreeMail($etudiant->load('formations'), $password));
+
+        return $password;
+    }
+
     // Voir ses cours (étudiant connecté)
     public function voirCours(User $user)
     {

@@ -14,14 +14,15 @@ class UpdateReponseRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'reponse_texte' => 'sometimes|nullable|string',
 
-            'texte' => 'sometimes|string',
+            'choix_id' => 'sometimes|nullable|exists:choix,id',
 
-            'est_correct' => 'sometimes|boolean',
+            'score' => 'sometimes|nullable|numeric',
 
-            'ordre' => 'sometimes|integer',
+            'statut' => 'sometimes|in:en_attente,corrige',
 
-            'question_id' => 'sometimes|exists:questions,id',
+            'commentaire_formateur' => 'sometimes|nullable|string',
         ];
     }
 }

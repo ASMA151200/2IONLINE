@@ -82,5 +82,33 @@ class FormateurController extends Controller
 
     }
 
+    /**
+     * Activer / désactiver le compte (admin uniquement)
+     */
+    public function toggleActive(Formateur $formateur)
+    {
+        $user = $this->formateurService->toggleActive($formateur);
+
+        return response()->json([
+            'success' => true,
+            'message' => $user->is_active ? 'Compte activé' : 'Compte désactivé',
+            'data' => ['is_active' => $user->is_active],
+        ]);
+    }
+
+    /**
+     * Réinitialiser le mot de passe (admin uniquement) — génère un nouveau
+     * mot de passe aléatoire et l'envoie par email, comme à la création.
+     */
+    public function resetPassword(Formateur $formateur)
+    {
+        $password = $this->formateurService->resetPassword($formateur);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mot de passe réinitialisé et envoyé par email',
+            'password_temporaire' => $password,
+        ]);
+    }
 
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ChangePasswordRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
@@ -37,7 +38,17 @@ class AuthController extends Controller
     //partie connexion
     public function login(LoginRequest $request)
     {
-        $data = $this->authService->login($request->validated());
+        try {
+            $data = $this->authService->login($request->validated());
+        } catch (\Exception $e) {
+            if ($e->getMessage() === 'COMPTE_DESACTIVE') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ce compte a été désactivé. Contactez un administrateur.'
+                ], 403);
+            }
+            throw $e;
+        }
 
         if (!$data){
             return response()->json([
@@ -71,6 +82,18 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => new UserResource($request->user())
+        ]);
+    }
+
+    // Modifier son propre profil (nom, téléphone, photo)
+    public function updateProfile(UpdateProfileRequest $request)
+    {
+        $user = $this->authService->updateProfile($request->user(), $request->validated(), $request->file('photo'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profil mis à jour avec succès',
+            'data' => new UserResource($user)
         ]);
     }
 

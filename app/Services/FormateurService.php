@@ -107,4 +107,23 @@ class FormateurService
 
         $formateur->deleteOrFail();
     }
+
+    // Activer / désactiver le compte
+    public function toggleActive(Formateur $formateur): User
+    {
+        $user = $formateur->user;
+        $user->update(['is_active' => !$user->is_active]);
+        return $user;
+    }
+
+    // Réinitialiser le mot de passe (génère et envoie par email)
+    public function resetPassword(Formateur $formateur): string
+    {
+        $password = Str::random(6);
+        $formateur->user->update(['password' => Hash::make($password)]);
+
+        Mail::to($formateur->user->email)->send(new FormateurCreeMail($formateur->load('user', 'modules'), $password));
+
+        return $password;
+    }
 }

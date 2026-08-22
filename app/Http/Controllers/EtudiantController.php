@@ -78,6 +78,34 @@ class EtudiantController extends Controller
         ], 200);
     }
 
+    /**
+     * Activer / désactiver le compte (admin uniquement)
+     */
+    public function toggleActive(Etudiant $etudiant)
+    {
+        $user = $this->etudiantService->toggleActive($etudiant);
+
+        return response()->json([
+            'success' => true,
+            'message' => $user->is_active ? 'Compte activé' : 'Compte désactivé',
+            'data' => ['is_active' => $user->is_active],
+        ]);
+    }
+
+    /**
+     * Réinitialiser le mot de passe (admin uniquement)
+     */
+    public function resetPassword(Etudiant $etudiant)
+    {
+        $password = $this->etudiantService->resetPassword($etudiant);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mot de passe réinitialisé et envoyé par email',
+            'password_temporaire' => $password,
+        ]);
+    }
+
     // Voir ses cours
     public function voirCours(Request $request)
     {

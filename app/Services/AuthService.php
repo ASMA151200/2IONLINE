@@ -44,6 +44,16 @@ class AuthService
         }
         $user = User::query()
                     ->where('email',$data['email'])->first();
+
+        if (!$user->is_active) {
+            // Révoque immédiatement toute session qui aurait pu être créée
+            // et signale explicitement que le compte est désactivé, pour
+            // que le frontend affiche un message différent d'un simple
+            // "identifiants invalides".
+            $user->tokens()->delete();
+            throw new \Exception('COMPTE_DESACTIVE');
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
         return [
             'user' => $user,
@@ -51,7 +61,24 @@ class AuthService
         ];
     }
 
-    // fonction logout(deconnexion)
+    // Modifier son propre profil (nom, téléphone, photo)
+    public function updateProfile(User $user, array $data, $photoFile = null): User
+    {
+        $updates = array_intersect_key($data, array_flip(['prenom', 'nom', 'telephone']));
+
+        if ($photoFile) {
+            if ($user->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->photo)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->photo);
+            }
+            $updates['photo'] = $photoFile->store('avatars', 'public');
+        }
+
+        $user->update($updates);
+
+        return $user->fresh();
+    }
+
+    // fonction logout (deconnexion)
     public function logout(User $user)
     {
         $user->tokens()->delete();
