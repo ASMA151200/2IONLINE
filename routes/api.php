@@ -79,6 +79,13 @@ Route::prefix('v1')->group(function (){
             Route::post('/directs', [DirectController::class, 'store']);
             Route::put('/directs/{direct}', [DirectController::class, 'update']);
             Route::delete('/directs/{direct}', [DirectController::class, 'destroy']);
+
+            // Certificats : créer/modifier/supprimer/générer (un étudiant ne
+            // peut ni s'auto-délivrer, ni modifier/supprimer un certificat)
+            Route::post('/certificats', [CertificatController::class, 'store']);
+            Route::put('/certificats/{certificat}', [CertificatController::class, 'update']);
+            Route::delete('/certificats/{certificat}', [CertificatController::class, 'destroy']);
+            Route::post('/certificats/generate', [CertificatController::class, 'generate']);
         });
 
         //Admin uniquement
@@ -120,11 +127,12 @@ Route::prefix('v1')->group(function (){
         Route::apiResource('examens', ExamenController::class);
         Route::post('/examens/{examen}/soumettre', [ExamenController::class, 'soumettre']);
 
-        //certificats
+        //certificats — lecture (liste/détail/téléchargement) ouverte à
+        // tout utilisateur connecté ; création/modification/suppression
+        // réservées à admin/formateur (voir plus bas, groupe role:admin,formateur)
         Route::get('/certificats/{certificat}/download', [CertificatController::class, 'download'])
        ->middleware('auth:sanctum');
-        Route::apiResource('certificats', CertificatController::class);
-        Route::post('/certificats/generate', [CertificatController::class, 'generate']);
+        Route::apiResource('certificats', CertificatController::class)->only(['index', 'show']);
 
         //actus
         Route::apiResource('actus', ActusController::class);
