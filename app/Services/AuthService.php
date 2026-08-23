@@ -45,7 +45,13 @@ class AuthService
         $user = User::query()
                     ->where('email',$data['email'])->first();
 
-        if (!$user->is_active) {
+        // Comparaison STRICTE (=== false, pas juste "falsy") : les comptes
+        // créés avant l'ajout de la colonne is_active peuvent avoir une
+        // valeur NULL en base plutôt que 1/true — avec un simple "!",
+        // NULL serait traité comme "désactivé" et bloquerait TOUS les
+        // comptes existants (bug réel rencontré). Seul un false explicite
+        // bloque la connexion ; NULL/manquant = compte actif par défaut.
+        if ($user->is_active === false) {
             // Révoque immédiatement toute session qui aurait pu être créée
             // et signale explicitement que le compte est désactivé, pour
             // que le frontend affiche un message différent d'un simple
