@@ -13,7 +13,6 @@ use App\Http\Controllers\ExamenController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\ProgressionController;
 use App\Http\Controllers\QuestionController;
-use App\Http\Controllers\ReponseController;
 use App\Http\Controllers\ResultatController;
 use App\Http\Controllers\ActusController;
 use App\Http\Controllers\OpportuniteController;
@@ -144,8 +143,17 @@ Route::prefix('v1')->group(function (){
         //questions
         Route::apiResource('questions', QuestionController::class);
 
-        //reponses
-        Route::apiResource('reponses', ReponseController::class);
+        //reponses — PAS de CRUD générique exposé ici volontairement.
+        // L'ancien Route::apiResource('reponses', ReponseController::class)
+        // permettait à N'IMPORTE QUEL utilisateur connecté (y compris un
+        // étudiant) de voir les réponses de tous les autres étudiants
+        // (index), de modifier le score/statut de n'importe quelle réponse
+        // — y compris la sienne, pour s'auto-attribuer une note parfaite —
+        // (update), ou d'en supprimer (destroy). Le vrai flux passe par
+        // POST /exercices/{id}/soumettre (soumission) et
+        // PUT /reponses/{id}/corriger (correction, admin/formateur
+        // uniquement, plus haut dans ce fichier) — jamais utilisé par le
+        // frontend, donc rien n'est perdu en le retirant.
 
         //resultats
         Route::apiResource('resultats', ResultatController::class);
