@@ -7,10 +7,20 @@ use Illuminate\Support\Facades\Storage;
 
 class FormationService
 {
-    //Liste des formations
+    //Liste des formations — ne charge QUE les titres/ordre des modules,
+    // jamais le contenu des leçons (vidéo/document/contenu). Cette
+    // méthode alimente à la fois la liste publique et la liste admin :
+    // charger '.lecons' en entier ici avait le même défaut que celui
+    // corrigé sur show() (fuite de contenu payant à quiconque), ET
+    // dégradait fortement les performances (toutes les leçons de toutes
+    // les formations, à chaque chargement de liste) — probable cause de
+    // lenteurs/timeouts (504) observés lors du rafraîchissement de la
+    // liste après une modification.
     public function getAll()
     {
-        return Formation::with('modules.lecons')->latest()->get();
+        return Formation::with(['modules' => function ($q) {
+            $q->select('id', 'titre', 'ordre', 'formation_id')->orderBy('ordre');
+        }])->latest()->get();
     }
 
     //Creer une formation
@@ -26,10 +36,14 @@ class FormationService
         return Formation::create($data);
     }
 
-    //Afficher une formation
+    //Afficher une formation (usage interne — le endpoint public show()
+    // du contrôleur fait sa propre requête restreinte, voir
+    // FormationController::show())
     public function getById(int $id): Formation
     {
-        return Formation::with('modules.lecons')->findOrFail($id);
+        return Formation::with(['modules' => function ($q) {
+            $q->select('id', 'titre', 'ordre', 'formation_id')->orderBy('ordre');
+        }])->findOrFail($id);
     }
 
     //Modifier une formation
