@@ -11,7 +11,15 @@ return new class extends Migration
     {
         Schema::create('alertes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cours_id')->constrained()->onDelete('cascade');
+            // CORRIGÉ : la colonne d'origine s'appelait "cours_id" avec une
+            // contrainte vers une table "cours" qui n'a jamais existé dans
+            // ce schéma (le vrai concept ici est "formations") — cette
+            // migration n'a donc jamais pu s'exécuter avec succès
+            // (CREATE TABLE échoue si la contrainte cible une table
+            // inexistante). Corrigée directement ici plutôt que via une
+            // migration corrective, puisque cette table n'a jamais été
+            // réellement créée en base.
+            $table->foreignId('formation_id')->constrained()->onDelete('cascade');
             $table->foreignId('formateur_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('live_session_id')->nullable()->constrained()->onDelete('cascade');
             $table->enum('type', ['rappel_live', 'annulation', 'deadline', 'annonce']);
@@ -21,7 +29,7 @@ return new class extends Migration
             $table->unsignedInteger('nb_push_envoyes')->default(0);
             $table->timestamps();
 
-            $table->index(['cours_id', 'type']);
+            $table->index(['formation_id', 'type']);
         });
     }
 

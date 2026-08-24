@@ -75,6 +75,16 @@ Route::prefix('v1')->group(function (){
         Route::get('/directs', [DirectController::class, 'index']);
         Route::get('/directs/{direct}', [DirectController::class, 'show']);
 
+        // Tous les connectés — activer/désactiver les notifications push
+        // sur leur propre navigateur (un étudiant DOIT pouvoir s'abonner,
+        // c'est même le cas d'usage principal)
+        Route::post('/push-subscribe', [PushSubscriptionController::class, 'store']);
+        Route::delete('/push-subscribe', [PushSubscriptionController::class, 'destroy']);
+
+        // Tous les connectés — voir les alertes (le contrôleur filtre
+        // lui-même selon le rôle, comme pour modules/leçons)
+        Route::get('/alertes', [AlerteController::class, 'index']);
+
         // Admin et Formateur
         Route::middleware('role:admin,formateur')->group(function () {
 
@@ -104,6 +114,9 @@ Route::prefix('v1')->group(function (){
             Route::post('/directs', [DirectController::class, 'store']);
             Route::put('/directs/{direct}', [DirectController::class, 'update']);
             Route::delete('/directs/{direct}', [DirectController::class, 'destroy']);
+
+            // Alertes : créer (déclenche l'envoi push aux inscrits actifs)
+            Route::post('/alertes', [AlerteController::class, 'store']);
 
             // Certificats : créer/modifier/supprimer/générer (un étudiant ne
             // peut ni s'auto-délivrer, ni modifier/supprimer un certificat)
@@ -198,13 +211,6 @@ Route::prefix('v1')->group(function (){
         //paiements
         Route::apiResource('paiements', PaiementController::class);
         Route::post('/paiements/{paiement}/paydunya', [PayDunyaController::class, 'initiate']);
-
-        //alerteRoute::middleware('role:formateur')->group(function () {
-        Route::post('/alertes', [AlerteController::class, 'store']);
-        Route::get('/alertes', [AlerteController::class, 'index']);
-
-        Route::post('/push-subscribe', [PushSubscriptionController::class, 'store']);
-        Route::delete('/push-subscribe', [PushSubscriptionController::class, 'destroy']);
     });
 
 
