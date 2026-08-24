@@ -6,24 +6,30 @@ use App\Models\Examen;
 use App\Http\Requests\StoreExamenRequest;
 use App\Http\Requests\UpdateExamenRequest;
 use App\Services\ExamenService;
+use App\Traits\ChecksFormationOwnership;
 use Illuminate\Http\Request;
 
 class ExamenController extends Controller
 {
+    use ChecksFormationOwnership;
+
     public function __construct(protected ExamenService $examenService)
     {
     }
 
     /**
-     * Liste des examens
+     * Liste des examens (admin = tout — utilisé par la vue d'ensemble
+     * admin — formateur = ses formations, étudiant = ses inscriptions
+     * actives)
      */
     public function index()
     {
-        $examens = Examen::with('formation')->latest()->get();
+        $query = Examen::with('formation')->latest();
+        $this->scopeToAccessibleFormations($query);
 
         return response()->json([
             'success' => true,
-            'data' => $examens
+            'data' => $query->get()
         ]);
     }
 
@@ -32,7 +38,10 @@ class ExamenController extends Controller
      */
     public function store(StoreExamenRequest $request)
     {
-        $examen = $this->examenService->create($request->validated());
+        $data = $request->validated();
+        $this->authorizeFormationOwner($data['formation_id']);
+
+        $examen = $this->examenService->create($data);
 
         return response()->json([
             'success' => true,
@@ -46,6 +55,8 @@ class ExamenController extends Controller
      */
     public function show(Examen $examen)
     {
+        $this->authorizeFormationAccess($examen->formation_id);
+
         return response()->json([
             'success' => true,
             'data' => $examen->load([
@@ -64,6 +75,8 @@ class ExamenController extends Controller
         Examen $examen
     )
     {
+        $this->authorizeFormationOwner($examen->formation_id);
+
         $examen->update(
             $request->validated()
         );
@@ -80,6 +93,8 @@ class ExamenController extends Controller
      */
     public function destroy(Examen $examen)
     {
+        $this->authorizeFormationOwner($examen->formation_id);
+
         $examen->delete();
 
         return response()->json([
@@ -94,6 +109,8 @@ class ExamenController extends Controller
      */
     public function soumettre(Request $request, Examen $examen)
     {
+        $this->authorizeFormationAccess($examen->formation_id);
+
         $data = $request->validate([
             'reponses' => 'required|array|min:1',
             'reponses.*.question_id' => 'required|exists:exercice_questions,id',

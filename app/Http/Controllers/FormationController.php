@@ -6,9 +6,12 @@ use App\Models\Formation;
 use App\Http\Requests\StoreFormationRequest;
 use App\Http\Requests\UpdateFormationRequest;
 use App\Services\FormationService;
+use App\Traits\ChecksFormationOwnership;
 
 class FormationController extends Controller
 {
+    use ChecksFormationOwnership;
+
     public function __construct(protected FormationService $formationService)
     {}
     /**
@@ -65,21 +68,31 @@ class FormationController extends Controller
     }
 
     /**
-     * afficher une formation
+     * afficher une formation — route PUBLIQUE (page marketing, avant
+     * inscription). NE charge QUE les titres/ordre des modules, JAMAIS
+     * le contenu des leçons (vidéo/document/contenu) : ce contenu payant
+     * ne doit être accessible qu'aux inscrits actifs, via
+     * LeconController::show() qui applique sa propre vérification
+     * d'inscription. Charger '.lecons' ici exposerait tout le contenu
+     * complet à n'importe qui, même non connecté.
      */
     public function show(Formation $formation)
     {
         return response()->json([
             'success' => true,
-            'data'    => $formation->load('modules.lecons')
+            'data'    => $formation->load(['modules' => function ($q) {
+                $q->select('id', 'titre', 'ordre', 'formation_id')->orderBy('ordre');
+            }])
         ]);
     }
 
     /**
-     * Modifier une formation
+     * Modifier une formation (admin, ou formateur propriétaire uniquement)
      */
     public function update(UpdateFormationRequest $request, Formation $formation)
     {
+        $this->authorizeFormationOwner($formation->id);
+
         $data = $request->validated();
 
         if ($request->hasFile('image')) {
@@ -96,10 +109,12 @@ class FormationController extends Controller
     }
 
     /**
-     * Supprimer une formation
+     * Supprimer une formation (admin, ou formateur propriétaire uniquement)
      */
     public function destroy(Formation $formation)
     {
+        $this->authorizeFormationOwner($formation->id);
+
         $this->formationService->delete($formation);
 
         return response()->json([

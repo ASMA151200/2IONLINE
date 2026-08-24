@@ -3,16 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Exercice;
+use App\Models\Lecon;
 use App\Models\Reponse;
 use App\Http\Requests\StoreExerciceRequest;
 use App\Http\Requests\UpdateExerciceRequest;
 use App\Http\Requests\StoreReponseRequest;
 use App\Http\Requests\CorrigerReponseRequest;
 use App\Services\ExerciceService;
+use App\Traits\ChecksFormationOwnership;
 use Illuminate\Http\Request;
 
 class ExerciceController extends Controller
 {
+    use ChecksFormationOwnership;
+
     public function __construct(protected ExerciceService $exerciceService)
     {}
 
@@ -28,18 +32,24 @@ class ExerciceController extends Controller
         ], 422);
         }
 
+        $lecon = Lecon::with('module')->findOrFail($leconId);
+        $this->authorizeFormationAccess($lecon->module->formation_id);
+
         return response()->json([
             'success' => true,
             'data'    => $this->exerciceService->getByLecon($leconId)
         ]);
     }
 
-    // Créer un exercice (formateur/admin)
+    // Créer un exercice (formateur/admin, propriétaire de la formation)
     public function store(StoreExerciceRequest $request)
     {
         try {
+            $data = $request->validated();
+            $lecon = Lecon::with('module')->findOrFail($data['lecon_id']);
+            $this->authorizeFormationOwner($lecon->module->formation_id);
 
-            $exercice = $this->exerciceService->create($request->validated());
+            $exercice = $this->exerciceService->create($data);
 
             return response()->json([
                 'success' => true,
@@ -57,6 +67,9 @@ class ExerciceController extends Controller
     // Afficher un exercice
     public function show(Exercice $exercice)
     {
+        $exercice->load('lecon.module');
+        $this->authorizeFormationAccess($exercice->lecon->module->formation_id);
+
         return response()->json([
             'success' => true,
             'data'    => $exercice->load('questions.choix')
@@ -66,6 +79,9 @@ class ExerciceController extends Controller
     //modifier un exercice
     public function update(UpdateExerciceRequest $request, Exercice $exercice)
     {
+        $exercice->load('lecon.module');
+        $this->authorizeFormationOwner($exercice->lecon->module->formation_id);
+
         $exercice = $this->exerciceService->update($exercice, $request->validated());
 
         return response()->json([
@@ -75,9 +91,12 @@ class ExerciceController extends Controller
         ]);
     }
 
-    // Supprimer un exercice (formateur/admin)
+    // Supprimer un exercice (formateur/admin, propriétaire de la formation)
     public function destroy(Exercice $exercice)
     {
+        $exercice->load('lecon.module');
+        $this->authorizeFormationOwner($exercice->lecon->module->formation_id);
+
         $this->exerciceService->delete($exercice);
 
         return response()->json([
@@ -89,6 +108,9 @@ class ExerciceController extends Controller
     // Soumettre les réponses (par etudiant)
     public function soumettre(StoreReponseRequest $request, Exercice $exercice)
     {
+        $exercice->load('lecon.module');
+        $this->authorizeFormationAccess($exercice->lecon->module->formation_id);
+
         try {
             $resultat = $this->exerciceService->soumettre(
                 $exercice,
@@ -126,6 +148,9 @@ class ExerciceController extends Controller
     // Résultats d'un etudiant (etudiant/formateur/admin)
     public function resultats(Request $request, Exercice $exercice)
     {
+        $exercice->load('lecon.module');
+        $this->authorizeFormationAccess($exercice->lecon->module->formation_id);
+
         $userId = $request->query('user_id', $request->user()->id);
 
         return response()->json([

@@ -60,6 +60,17 @@ Route::prefix('v1')->group(function (){
         Route::get('/exercices/{exercice}', [ExerciceController::class, 'show']);
         Route::get('/exercices/{exercice}/resultats', [ExerciceController::class, 'resultats']);
 
+        // Tous les connectés — voir modules/leçons (le contrôleur filtre
+        // lui-même selon le rôle : formateur=ses formations,
+        // étudiant=inscriptions actives, admin=tout). Auparavant ces
+        // routes étaient entièrement dans le groupe role:admin,formateur,
+        // ce qui bloquait même la LECTURE pour les étudiants (403
+        // automatique) — cassant le lecteur de cours côté étudiant.
+        Route::get('/modules', [ModuleController::class, 'index']);
+        Route::get('/modules/{module}', [ModuleController::class, 'show']);
+        Route::get('/lecons', [LeconController::class, 'index']);
+        Route::get('/lecons/{lecon}', [LeconController::class, 'show']);
+
         // Tous les connectés — voir les sessions live (étudiants inclus)
         Route::get('/directs', [DirectController::class, 'index']);
         Route::get('/directs/{direct}', [DirectController::class, 'show']);
@@ -69,8 +80,17 @@ Route::prefix('v1')->group(function (){
 
             Route::apiResource('categories',CategorieController::class)->except(['index','show']); //categories
             Route::apiResource('formations',FormationController::class)->except(['index','show']);;  //formations
-            Route::apiResource('modules', ModuleController::class); //modules
-            Route::apiResource('lecons', LeconController::class);   //lecons
+
+            // Modules/leçons : créer, modifier, supprimer (le contrôleur
+            // vérifie en plus que le formateur est bien propriétaire de la
+            // formation concernée — un formateur ne peut pas modifier le
+            // contenu d'une formation qui n'est pas la sienne)
+            Route::post('/modules', [ModuleController::class, 'store']);
+            Route::put('/modules/{module}', [ModuleController::class, 'update']);
+            Route::delete('/modules/{module}', [ModuleController::class, 'destroy']);
+            Route::post('/lecons', [LeconController::class, 'store']);
+            Route::put('/lecons/{lecon}', [LeconController::class, 'update']);
+            Route::delete('/lecons/{lecon}', [LeconController::class, 'destroy']);
 
             // Exercices : créer, modifier, supprimer
             Route::post('/exercices',  [ExerciceController::class, 'store']);

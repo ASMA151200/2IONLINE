@@ -5,14 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\LiveSession;
 use App\Http\Requests\StoreLiveSessionRequest;
 use App\Http\Requests\UpdateLiveSessionRequest;
+use App\Traits\ChecksFormationOwnership;
 use Illuminate\Http\Request;
 
 class DirectController extends Controller
 {
+    use ChecksFormationOwnership;
+
     /**
      * Liste des sessions live, filtrable par formation_id (utilisé par le
      * frontend étudiant/professeur pour n'afficher que les directs d'une
-     * formation donnée).
+     * formation donnée). Accès filtré : admin = tout, formateur = ses
+     * formations, étudiant = ses inscriptions actives.
      */
     public function index(Request $request)
     {
@@ -21,6 +25,8 @@ class DirectController extends Controller
         if ($request->filled('formation_id')) {
             $query->where('formation_id', $request->input('formation_id'));
         }
+
+        $this->scopeToAccessibleFormations($query);
 
         return response()->json([
             'success' => true,
@@ -31,6 +37,8 @@ class DirectController extends Controller
     public function store(StoreLiveSessionRequest $request)
     {
         $data = $request->validated();
+        $this->authorizeFormationOwner($data['formation_id']);
+
         $data['user_id'] = auth()->id();
         $data['status'] = $data['status'] ?? 'scheduled';
 
@@ -45,6 +53,8 @@ class DirectController extends Controller
 
     public function show(LiveSession $direct)
     {
+        $this->authorizeFormationAccess($direct->formation_id);
+
         return response()->json([
             'success' => true,
             'data' => $direct->load(['formation', 'user']),
@@ -53,6 +63,8 @@ class DirectController extends Controller
 
     public function update(UpdateLiveSessionRequest $request, LiveSession $direct)
     {
+        $this->authorizeFormationOwner($direct->formation_id);
+
         $direct->update($request->validated());
 
         return response()->json([
@@ -64,6 +76,8 @@ class DirectController extends Controller
 
     public function destroy(LiveSession $direct)
     {
+        $this->authorizeFormationOwner($direct->formation_id);
+
         $direct->delete();
 
         return response()->json([
