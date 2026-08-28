@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use App\Models\Candidature;
+
 class Opportunite extends Model
 {
     /** @use HasFactory<\Database\Factories\OpportuniteFactory> */
@@ -23,14 +25,13 @@ class Opportunite extends Model
         'entreprise',
         'lien_inscription',
         'statut',
-        'formation_id',
     ];
 
 
     //Relations
-     public function formation(): BelongsTo
+    public function candidatures(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->belongsTo(Formation::class);
+        return $this->hasMany(Candidature::class);
     }
 
 

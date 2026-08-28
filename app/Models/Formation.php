@@ -74,5 +74,9 @@ class Formation extends Model
             ->withTimestamps();
     }
 
+    public function sondages(): HasMany
+    {
+        return $this->hasMany(Sondage::class);
+    }
 
 }

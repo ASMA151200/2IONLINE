@@ -40,6 +40,7 @@ class CertificatGeneratorService
 
         return Certificat::create([
             'numero_certificat' => $numero,
+            'code_verification' => (string) Str::uuid(),
             'fichier_pdf' => $path,
             'date_obtention' => now()->toDateString(),
             'user_id' => $user->id,

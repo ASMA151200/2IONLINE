@@ -13,6 +13,7 @@ class Certificat extends Model
 
      protected $fillable = [
         'numero_certificat',
+        'code_verification',
         'fichier_pdf',
         'date_obtention',
         'user_id',

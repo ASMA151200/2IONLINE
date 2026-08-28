@@ -27,6 +27,15 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\FavoriController;
 use App\Http\Controllers\ForumController;
+use App\Http\Controllers\PresenceController;
+use App\Http\Controllers\AttestationController;
+use App\Http\Controllers\GamificationController;
+use App\Http\Controllers\AlumniController;
+use App\Http\Controllers\CandidatureController;
+use App\Http\Controllers\DonController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\MentoratController;
+use App\Http\Controllers\SondageController;
 
 
 
@@ -48,6 +57,19 @@ Route::prefix('v1')->group(function (){
     //Lecture publique (Voir les Categories et Formations disponibles)
     Route::apiResource('categories', CategorieController::class)->only(['index', 'show']);
     Route::apiResource('formations', FormationController::class)->only(['index', 'show']);
+
+    // Dons ponctuels — publics, un visiteur non connecté doit pouvoir donner
+    Route::post('/dons', [DonController::class, 'initiate']);
+    Route::get('/dons/total', [DonController::class, 'total']);
+
+    // Vérification publique de certificat par QR code / code
+    Route::get('/certificats/verifier/{code}', [CertificatController::class, 'verifier']);
+
+    // Chiffres clés publics (page "Impact" du site vitrine)
+    Route::get('/impact', [AnalyticsController::class, 'impact']);
+
+    // Annuaire alumni public (opt-in uniquement, voir alumni_visible)
+    Route::get('/alumni', [AlumniController::class, 'index']);
     Route::get('/search', [SearchController::class, 'index']);
 
     //Routes protegees (l'utilisateur doit etre connecte)
@@ -120,6 +142,24 @@ Route::prefix('v1')->group(function (){
             // Alertes : créer (déclenche l'envoi push aux inscrits actifs)
             Route::post('/alertes', [AlerteController::class, 'store']);
 
+            // Présences : marquer et consulter (propriétaire de la formation)
+            Route::post('/directs/{liveSession}/presences', [PresenceController::class, 'marquer']);
+            Route::get('/directs/{liveSession}/presences', [PresenceController::class, 'index']);
+
+            // Attestations : génération en masse pour une session live
+            Route::post('/directs/{liveSession}/attestations', [AttestationController::class, 'generer']);
+
+            // Gamification : attribuer un badge
+            Route::post('/badges/attribuer', [GamificationController::class, 'attribuer']);
+
+            // Candidatures reçues pour une opportunité + changement de statut
+            Route::get('/opportunites/{opportunite}/candidatures', [CandidatureController::class, 'index']);
+            Route::put('/candidatures/{candidature}/statut', [CandidatureController::class, 'updateStatut']);
+
+            // Sondages : création + résultats (propriétaire de la formation)
+            Route::post('/sondages', [SondageController::class, 'store']);
+            Route::get('/sondages/{sondage}/resultats', [SondageController::class, 'resultats']);
+
             // Certificats : créer/modifier/supprimer/générer (un étudiant ne
             // peut ni s'auto-délivrer, ni modifier/supprimer un certificat)
             Route::post('/certificats', [CertificatController::class, 'store']);
@@ -160,6 +200,7 @@ Route::prefix('v1')->group(function (){
             Route::get('/mes-financements', [PartenaireDashboardController::class, 'mesFinancements']);
             Route::get('/mes-financements/stats', [PartenaireDashboardController::class, 'stats']);
             Route::get('/mes-financements/{formation}/etudiants', [PartenaireDashboardController::class, 'etudiantsFormation']);
+            Route::get('/mes-financements/rapport-pdf', [PartenaireDashboardController::class, 'rapportPdf']);
         });
 
         //Etudiant uniquement
@@ -185,6 +226,38 @@ Route::prefix('v1')->group(function (){
         Route::delete('/forum/replies/{reply}', [ForumController::class, 'destroyReply']);
         Route::post('/forum/posts/{post}/like', [ForumController::class, 'toggleLikePost']);
         Route::post('/forum/replies/{reply}/like', [ForumController::class, 'toggleLikeReply']);
+
+        // Présences et attestations (étudiant : consultation de ses propres données)
+        Route::get('/mes-presences', [PresenceController::class, 'mesPresences']);
+        Route::get('/mes-attestations', [AttestationController::class, 'mesAttestations']);
+
+        // Gamification
+        Route::get('/badges', [GamificationController::class, 'badges']);
+        Route::get('/mes-badges', [GamificationController::class, 'mesBadges']);
+        Route::get('/classement', [GamificationController::class, 'classement']);
+
+        // Alumni — l'étudiant gère sa propre visibilité dans l'annuaire
+        Route::put('/mon-profil-alumni', [AlumniController::class, 'updateVisibilite']);
+
+        // Candidatures (matching CV <-> opportunités)
+        Route::post('/opportunites/{opportunite}/postuler', [CandidatureController::class, 'store']);
+        Route::get('/mes-candidatures', [CandidatureController::class, 'mesCandidatures']);
+
+        // Messagerie privée
+        Route::get('/messages/conversations', [MessageController::class, 'conversations']);
+        Route::get('/messages/{userId}', [MessageController::class, 'withUser']);
+        Route::post('/messages', [MessageController::class, 'store']);
+
+        // Mentorat
+        Route::get('/mentors-disponibles', [MentoratController::class, 'mentorsDisponibles']);
+        Route::post('/mentorats/demander', [MentoratController::class, 'demander']);
+        Route::get('/mes-mentorats', [MentoratController::class, 'mesMentorats']);
+        Route::get('/mentorats/demandes-recues', [MentoratController::class, 'demandesRecues']);
+        Route::put('/mentorats/{mentorat}/statut', [MentoratController::class, 'updateStatut']);
+
+        // Sondages (lecture + réponse — le contrôleur filtre l'accès selon inscription/propriété)
+        Route::get('/sondages', [SondageController::class, 'index']);
+        Route::post('/sondages/{sondage}/repondre', [SondageController::class, 'repondre']);
 
         
 

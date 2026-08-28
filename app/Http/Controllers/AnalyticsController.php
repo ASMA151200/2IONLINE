@@ -135,4 +135,32 @@ class AnalyticsController extends Controller
 
         return response()->json(['success' => true, 'data' => $data]);
     }
+
+    /**
+     * Chiffres clés PUBLICS pour la page "Impact" du site vitrine —
+     * AUCUNE authentification requise. Volontairement limité à des
+     * agrégats non sensibles (pas de noms, pas de montants détaillés par
+     * formation, pas de données individuelles).
+     */
+    public function impact(): JsonResponse
+    {
+        $totalDiplomes = \App\Models\Certificat::count();
+        $totalFormations = Formation::count();
+        $totalEtudiants = User::where('role', 'etudiant')->count();
+        $totalPartenaires = \App\Models\Partenaire::count();
+        $totalInvesti = \Illuminate\Support\Facades\DB::table('formation_partenaire')->sum('montant_finance');
+        $totalDons = \App\Models\Don::where('statut', 'confirme')->sum('montant');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'totalDiplomes' => $totalDiplomes,
+                'totalFormations' => $totalFormations,
+                'totalEtudiants' => $totalEtudiants,
+                'totalPartenaires' => $totalPartenaires,
+                'totalInvesti' => (float) $totalInvesti,
+                'totalDons' => (float) $totalDons,
+            ],
+        ]);
+    }
 }

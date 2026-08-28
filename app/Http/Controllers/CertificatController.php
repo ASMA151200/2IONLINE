@@ -61,6 +61,7 @@ class CertificatController extends Controller
     public function store(StoreCertificatRequest $request): JsonResponse
     {
         $data = $request->validated();
+        $data['code_verification'] = (string) \Illuminate\Support\Str::uuid();
 
         if ($request->hasFile('fichier_pdf')) {
             $data['fichier_pdf'] = $request
@@ -74,6 +75,34 @@ class CertificatController extends Controller
             'message' => 'Certificat créé avec succès',
             'data' => $certificat->load(['user', 'formation'])
         ], 201);
+    }
+
+    /**
+     * Vérification publique d'un certificat par son code (QR code) —
+     * AUCUNE authentification requise, c'est le point même de la
+     * vérification publique. Ne renvoie que des informations non
+     * sensibles (nom, formation, date), jamais le fichier PDF lui-même.
+     */
+    public function verifier(string $code): JsonResponse
+    {
+        $certificat = Certificat::with(['user', 'formation'])
+            ->where('code_verification', $code)
+            ->first();
+
+        if (!$certificat) {
+            return response()->json(['success' => false, 'message' => 'Certificat introuvable ou invalide.'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'valide' => true,
+                'nom' => $certificat->user->prenom . ' ' . $certificat->user->nom,
+                'formation' => $certificat->formation->titre,
+                'numero_certificat' => $certificat->numero_certificat,
+                'date_obtention' => $certificat->date_obtention,
+            ],
+        ]);
     }
 
     /**

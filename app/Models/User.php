@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -104,6 +105,31 @@ class User extends Authenticatable
     public function partenaire(): HasOne
     {
         return $this->hasOne(Partenaire::class);
+    }
+
+    public function badges(): BelongsToMany
+    {
+        return $this->belongsToMany(Badge::class, 'user_badges')->withPivot('obtenu_le');
+    }
+
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function receivedMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
+
+    public function mentoratsAsMentor(): HasMany
+    {
+        return $this->hasMany(Mentorat::class, 'mentor_id');
+    }
+
+    public function mentoratsAsMentore(): HasMany
+    {
+        return $this->hasMany(Mentorat::class, 'mentore_id');
     }
 
 

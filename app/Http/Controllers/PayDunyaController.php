@@ -97,8 +97,25 @@ class PayDunyaController extends Controller
 
         $paiement = Paiement::where('paydunya_token', $token)->first();
 
+        // Le même webhook IPN gère aussi les dons ponctuels (DonController)
+        // — un token PayDunya donné ne correspond jamais qu'à un seul des
+        // deux (Paiement OU Don), jamais les deux à la fois.
         if (!$paiement) {
-            Log::warning('[PayDunya IPN] Paiement introuvable pour ce token', ['token' => $token]);
+            $don = \App\Models\Don::where('paydunya_token', $token)->first();
+
+            if ($don) {
+                if ($don->statut === 'confirme') {
+                    return response()->json(['success' => true]);
+                }
+                if ($status === 'completed') {
+                    $don->update(['statut' => 'confirme']);
+                } elseif (in_array($status, ['cancelled', 'canceled', 'failed', 'fail'], true)) {
+                    $don->update(['statut' => 'echec']);
+                }
+                return response()->json(['success' => true]);
+            }
+
+            Log::warning('[PayDunya IPN] Paiement/Don introuvable pour ce token', ['token' => $token]);
             return response()->json(['message' => 'Paiement introuvable'], 404);
         }
 

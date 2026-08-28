@@ -126,4 +126,42 @@ class PartenaireDashboardController extends Controller
 
         return response()->json(['success' => true, 'data' => $data]);
     }
+
+    /**
+     * Génère un rapport PDF téléchargeable pour le partenaire connecté —
+     * pratique pour justifier son financement auprès de ses propres
+     * bailleurs. Réutilise dompdf, déjà requis pour les certificats.
+     */
+    public function rapportPdf(Request $request)
+    {
+        $partenaire = $request->user()->partenaire;
+
+        if (!$partenaire) {
+            return response()->json(['success' => false, 'message' => 'Profil partenaire introuvable'], 404);
+        }
+
+        $formations = $partenaire->formations()->withCount('inscriptions')->get();
+
+        $totalInvesti = $formations->sum(fn ($f) => (float) $f->pivot->montant_finance);
+        $formationIds = $formations->pluck('id');
+        $totalEtudiants = Inscription::whereIn('formation_id', $formationIds)->where('statut', 'actif')->distinct('user_id')->count('user_id');
+        $totalTermines = Inscription::whereIn('formation_id', $formationIds)->where('statut', 'termine')->count();
+        $totalInscriptions = Inscription::whereIn('formation_id', $formationIds)->count();
+        $tauxReussite = $totalInscriptions > 0 ? round(($totalTermines / $totalInscriptions) * 100, 1) : 0;
+        $certificatsDelivres = Certificat::whereIn('formation_id', $formationIds)->count();
+
+        $pdf = app('dompdf.wrapper')->loadView('rapports.partenaire', [
+            'partenaire' => $partenaire,
+            'formations' => $formations,
+            'date' => now()->format('d/m/Y'),
+            'stats' => [
+                'totalInvesti' => $totalInvesti,
+                'totalEtudiants' => $totalEtudiants,
+                'tauxReussite' => $tauxReussite,
+                'certificatsDelivres' => $certificatsDelivres,
+            ],
+        ]);
+
+        return $pdf->download('rapport-2i-online-' . now()->format('Y-m-d') . '.pdf');
+    }
 }
