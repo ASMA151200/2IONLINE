@@ -6,6 +6,8 @@ use App\Http\Controllers\FormationController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\LeconController;
 use App\Http\Controllers\FormateurController;
+use App\Http\Controllers\PartenaireController;
+use App\Http\Controllers\PartenaireDashboardController;
 use App\Http\Controllers\EtudiantController;
 use App\Http\Controllers\ExerciceController;
 use App\Http\Controllers\CertificatController;
@@ -130,11 +132,18 @@ Route::prefix('v1')->group(function (){
         Route::middleware('role:admin')->group(function () {
             Route::apiResource('formateurs', FormateurController::class); //creation de formateur
             Route::apiResource('etudiants', EtudiantController::class);  //creation d'etudiants
+            Route::apiResource('partenaires', PartenaireController::class); //creation de partenaire
 
             Route::put('/formateurs/{formateur}/toggle-active', [FormateurController::class, 'toggleActive']);
             Route::post('/formateurs/{formateur}/reset-password', [FormateurController::class, 'resetPassword']);
             Route::put('/etudiants/{etudiant}/toggle-active', [EtudiantController::class, 'toggleActive']);
             Route::post('/etudiants/{etudiant}/reset-password', [EtudiantController::class, 'resetPassword']);
+            Route::put('/partenaires/{partenaire}/toggle-active', [PartenaireController::class, 'toggleActive']);
+            Route::post('/partenaires/{partenaire}/reset-password', [PartenaireController::class, 'resetPassword']);
+
+            // Financement d'une formation par un partenaire
+            Route::post('/partenaires/{partenaire}/financer', [PartenaireController::class, 'financer']);
+            Route::delete('/partenaires/{partenaire}/financer/{formation}', [PartenaireController::class, 'retirerFinancement']);
 
             // Analytics (agrégées depuis les données existantes, aucune
             // nouvelle table)
@@ -142,6 +151,15 @@ Route::prefix('v1')->group(function (){
             Route::get('/analytics/formations', [AnalyticsController::class, 'allFormations']);
             Route::get('/analytics/formations/{formation}', [AnalyticsController::class, 'formation']);
             Route::get('/analytics/students', [AnalyticsController::class, 'students']);
+        });
+
+        // Partenaire uniquement — son propre espace (lecture seule sur ce
+        // qu'il finance, vérifié via la table pivot dans le contrôleur,
+        // pas juste par rôle)
+        Route::middleware('role:partenaire')->group(function () {
+            Route::get('/mes-financements', [PartenaireDashboardController::class, 'mesFinancements']);
+            Route::get('/mes-financements/stats', [PartenaireDashboardController::class, 'stats']);
+            Route::get('/mes-financements/{formation}/etudiants', [PartenaireDashboardController::class, 'etudiantsFormation']);
         });
 
         //Etudiant uniquement

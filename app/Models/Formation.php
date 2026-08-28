@@ -67,5 +67,12 @@ class Formation extends Model
         return $this->hasMany(Opportunite::class);
     }
 
+    public function partenaires(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Partenaire::class, 'formation_partenaire')
+            ->withPivot(['montant_finance', 'date_financement'])
+            ->withTimestamps();
+    }
+
 
 }

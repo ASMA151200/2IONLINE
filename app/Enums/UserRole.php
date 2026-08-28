@@ -8,4 +8,5 @@ enum UserRole:string
     case admin = 'admin';
     case etudiant = 'etudiant';
     case formateur ='formateur';
+    case partenaire = 'partenaire';
 }

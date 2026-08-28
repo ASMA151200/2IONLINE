@@ -101,6 +101,11 @@ class User extends Authenticatable
         return $this->hasOne(Etudiant::class);
     }
 
+    public function partenaire(): HasOne
+    {
+        return $this->hasOne(Partenaire::class);
+    }
+
 
 
 }
