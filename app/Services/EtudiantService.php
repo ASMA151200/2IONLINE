@@ -45,6 +45,24 @@ class EtudiantService
 
             if (!empty($data['formations'])) {
                 $etudiant->formations()->sync($data['formations']);
+
+                // IMPORTANT: le lien ci-dessus (etudiant_formation) est
+                // purement informatif — ce n'est PAS ce qui donne
+                // réellement accès au contenu des leçons. Seule une
+                // inscription active (table inscriptions, statut='actif')
+                // le permet (voir LeconController::authorizeFormationAccess).
+                // Normalement créée par le webhook PayDunya après un vrai
+                // paiement en ligne ; ici on la crée directement pour
+                // couvrir le scénario "paiement en liquide hors
+                // plateforme" — l'étudiant ajouté par l'admin doit
+                // pouvoir se connecter et voir ses leçons immédiatement,
+                // sans jamais passer par PayDunya.
+                foreach ($data['formations'] as $formationId) {
+                    \App\Models\Inscription::updateOrCreate(
+                        ['user_id' => $user->id, 'formation_id' => $formationId],
+                        ['date' => now()->toDateString(), 'statut' => 'actif'],
+                    );
+                }
             }
 
             // Recharger les formations avant d'envoyer le mail
@@ -84,6 +102,19 @@ class EtudiantService
 
         if (isset($data['formations'])) {
             $etudiant->formations()->sync($data['formations']);
+
+            // Même logique qu'à la création : garantit un accès réel
+            // (inscription active) pour toute formation ajoutée ici, pas
+            // seulement le lien informatif. Les formations retirées ne
+            // voient pas leur inscription automatiquement annulée (pour
+            // ne jamais toucher accidentellement à une inscription liée
+            // à un vrai paiement PayDunya déjà confirmé).
+            foreach ($data['formations'] as $formationId) {
+                \App\Models\Inscription::updateOrCreate(
+                    ['user_id' => $etudiant->user_id, 'formation_id' => $formationId],
+                    ['date' => now()->toDateString(), 'statut' => 'actif'],
+                );
+            }
         }
 
         return $etudiant->load(['user', 'formations']);
