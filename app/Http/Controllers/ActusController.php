@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Actus;
 use App\Http\Requests\StoreActusRequest;
 use App\Http\Requests\UpdateActusRequest;
+use App\Support\HtmlSanitizer;
 use Illuminate\Support\Facades\Storage;
 
 class ActusController extends Controller
@@ -19,6 +20,10 @@ class ActusController extends Controller
     public function store(StoreActusRequest $request)
     {
         $data = $request->validated();
+
+        if (isset($data['contenu_html'])) {
+            $data['contenu_html'] = HtmlSanitizer::clean($data['contenu_html']);
+        }
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')
@@ -43,6 +48,10 @@ class ActusController extends Controller
     public function update(UpdateActusRequest $request, Actus $actus)
     {
         $data = $request->validated();
+
+        if (isset($data['contenu_html'])) {
+            $data['contenu_html'] = HtmlSanitizer::clean($data['contenu_html']);
+        }
 
         if ($request->hasFile('image')) {
             if ($actus->image) {

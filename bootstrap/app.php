@@ -15,6 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // Sanctum
         $middleware->statefulApi();
 
+        // Rate limiting global (voir AppServiceProvider::boot() pour la
+        // définition du limiteur 'api')
+        $middleware->api(prepend: [
+            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+        ]);
+
         // Middleware personnalisé
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,

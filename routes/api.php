@@ -42,12 +42,18 @@ use App\Http\Controllers\SondageController;
 Route::prefix('v1')->group(function (){
 
     //Routes publiques
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    // Rate limiting : sans ça, un attaquant peut tenter des milliers de
+    // mots de passe/inscriptions par seconde. "5,1" = 5 tentatives par
+    // minute par IP+email combinés (clé par défaut de throttle sur ces
+    // routes). Volontairement plus permissif sur login (l'utilisateur
+    // légitime peut se tromper) que sur register/forgotPassword (aucune
+    // raison légitime de spammer ces deux-là).
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 
     // reinitialisation et mot de passe oublie
-    Route::post('/forgotPassword', [AuthController::class, 'forgotPassword']);
-    Route::post('/resetPassword',  [AuthController::class, 'resetPassword']);
+    Route::post('/forgotPassword', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,1');
+    Route::post('/resetPassword',  [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
 
     // IPN PayDunya — appelée directement par les serveurs PayDunya, sans
     // session utilisateur. DOIT rester hors du groupe auth:sanctum, sinon

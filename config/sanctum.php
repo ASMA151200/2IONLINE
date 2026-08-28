@@ -50,7 +50,12 @@ return [
     |
     */
 
-    'expiration' => null,
+    // ATTENTION: était à `null` (jamais d'expiration) — un token volé
+    // restait valide pour toujours tant qu'il n'était pas révoqué
+    // manuellement. 43200 minutes = 30 jours : assez long pour ne pas
+    // gêner un usage normal ("rester connecté"), mais borne quand même
+    // la durée de vie d'un token compromis.
+    'expiration' => 43200,
 
     /*
     |--------------------------------------------------------------------------

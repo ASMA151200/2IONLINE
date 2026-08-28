@@ -4,6 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
@@ -27,7 +28,14 @@ class RegisterRequest extends FormRequest
             'nom' => ['required', 'string', 'max:225'],
             'telephone' => ['required', 'string', 'max:50'],
             'email' => ['required', 'email', 'unique:users,email'],
-            'password' => ['required', 'min:6']
+            // ATTENTION: 'min:6' sans aucune autre exigence permettait un
+            // mot de passe comme "123456" — combiné à l'absence de rate
+            // limiting (corrigée séparément), c'était trivialement
+            // cassable par force brute. Exige maintenant 8 caractères
+            // minimum + au moins une lettre et un chiffre (compromis
+            // volontaire : pas de symbole obligatoire, pour ne pas trop
+            // pénaliser un public parfois peu technophile).
+            'password' => ['required', Password::min(8)->letters()->numbers()],
         ];
     }
 }

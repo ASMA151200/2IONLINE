@@ -4,7 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use SebastianBergmann\Type\TrueType;
+use Illuminate\Validation\Rules\Password;
 
 class ResetPasswordRequest extends FormRequest
 {
@@ -26,7 +26,7 @@ class ResetPasswordRequest extends FormRequest
         return [
             'email'                 => 'required|email|exists:users,email',
             'code'                  => 'required|string',
-            'nouveau_password'      => 'required|string|min:8|confirmed',
+            'nouveau_password'      => ['required', Password::min(8)->letters()->numbers(), 'confirmed'],
         ];
     }
 
