@@ -14,7 +14,10 @@ class Etudiant extends Model
         'user_id',
         'date_naissance',
         'lieu_naissance',
-        'niveau'
+        'niveau',
+        'alumni_visible',
+        'poste_actuel',
+        'entreprise_actuelle',
     ];
 
     public function user(): BelongsTo
