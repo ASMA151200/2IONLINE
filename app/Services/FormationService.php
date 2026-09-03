@@ -16,11 +16,26 @@ class FormationService
     // les formations, à chaque chargement de liste) — probable cause de
     // lenteurs/timeouts (504) observés lors du rafraîchissement de la
     // liste après une modification.
-    public function getAll()
+    // $userId optionnel : filtre sur les formations dont ce user est
+    // propriétaire (formations.user_id) — utilisé par le frontend
+    // professeur (/formations?user_id=X) pour ne lister QUE ses propres
+    // formations, plutôt que celles de toute la plateforme. Ce filtre
+    // n'était auparavant jamais appliqué côté backend (le paramètre était
+    // silencieusement ignoré), ce qui permettait à un professeur de
+    // choisir une formation qu'il ne possède pas dans les sélecteurs
+    // module/leçon/exercice/examen, pour ensuite se faire systématiquement
+    // rejeter par ChecksFormationOwnership au moment d'enregistrer.
+    public function getAll(?int $userId = null)
     {
-        return Formation::with(['modules' => function ($q) {
+        $query = Formation::with(['modules' => function ($q) {
             $q->select('id', 'titre', 'ordre', 'formation_id')->orderBy('ordre');
-        }])->latest()->get();
+        }])->latest();
+
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        }
+
+        return $query->get();
     }
 
     //Creer une formation

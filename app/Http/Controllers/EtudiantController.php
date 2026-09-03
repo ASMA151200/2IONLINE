@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreEtudiantRequest;
+use App\Http\Requests\UpdateEtudiantRequest;
 use App\Models\Etudiant;
 use App\Services\EtudiantService;
 use Illuminate\Http\Request;
@@ -56,7 +57,7 @@ class EtudiantController extends Controller
     /**
      * Update etudiant
      */
-    public function update(StoreEtudiantRequest $request, Etudiant $etudiant)
+    public function update(UpdateEtudiantRequest $request, Etudiant $etudiant)
     {
         $etudiant = $this->etudiantService->update($etudiant, $request->validated());
         return response()->json([

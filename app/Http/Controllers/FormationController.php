@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Formation;
+use Illuminate\Http\Request;
 use App\Http\Requests\StoreFormationRequest;
 use App\Http\Requests\UpdateFormationRequest;
 use App\Services\FormationService;
@@ -17,11 +18,13 @@ class FormationController extends Controller
     /**
      * Liste des formations
      */
-    public function index()
+    public function index(Request $request)
     {
+        $userId = $request->query('user_id') ? (int) $request->query('user_id') : null;
+
         return response()->json([
             'success' => true,
-            'data'    => $this->formationService->getAll()
+            'data'    => $this->formationService->getAll($userId)
         ]);
     }
 
