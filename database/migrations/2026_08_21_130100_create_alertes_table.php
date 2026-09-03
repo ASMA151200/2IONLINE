@@ -1,5 +1,15 @@
 <?php
-// database/migrations/2024_01_01_000011_create_alertes_table.php
+// database/migrations/2026_08_21_130100_create_alertes_table.php
+//
+// ATTENTION ORDRE: initialement datée 2026_06_29 (avant la création de
+// live_sessions le 2026_08_21), cette migration échouait avec "Foreign
+// key constraint is incorrectly formed" — MySQL refusait la contrainte
+// vers live_session_id car cette table n'existait pas encore au moment
+// où alertes tentait de s'exécuter (l'ordre des migrations suit le nom
+// du fichier). Renommée pour s'exécuter juste après
+// 2026_08_21_130000_create_live_sessions_table.php — sans risque, cette
+// migration n'avait jamais réussi à s'exécuter jusqu'ici, aucune ligne
+// ne l'enregistrait dans la table de suivi des migrations.
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
