@@ -10,13 +10,18 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::create([
-    'prenom' => 'Test',
-    'nom' => 'User',
-    'telephone' => '770000000',
-    'email' => 'test@example.com',
-    'password' => Hash::make('password123'),
-    'role' => 'admin',
-]);
+        // firstOrCreate (pas create) : relancer "php artisan db:seed" sur
+        // une base déjà partiellement peuplée ne doit jamais planter sur
+        // ce compte de test déjà existant.
+        User::firstOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'prenom' => 'Test',
+                'nom' => 'User',
+                'telephone' => '770000000',
+                'password' => Hash::make('password123'),
+                'role' => 'admin',
+            ],
+        );
     }
 }
