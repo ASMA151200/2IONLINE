@@ -29,7 +29,8 @@ class UpdateFormateurRequest extends FormRequest
             'email' => 'sometimes|email|unique:users,email',
             'specialite' =>'sometimes|string',
             'modules' =>'nullable|array',
-            'modules.*' =>'exists:modules,id'
+            'modules.*' =>'exists:modules,id',
+            'formation_id' => 'nullable|exists:formations,id',
         ];
     }
 }

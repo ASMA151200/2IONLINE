@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Formateur;
+use App\Models\Formation;
 use App\Enums\UserRole;
 
 use Illuminate\Support\Str;
@@ -16,10 +17,15 @@ use Illuminate\Support\Facades\DB;
 class FormateurService
 {
 
-    // Liste formateurs
+    // Liste formateurs — inclut les formations dont ce formateur est
+    // réellement propriétaire (formations.user_id), pas juste les
+    // modules, pour que l'admin voie/gère cette assignation.
     public function getAll()
     {
-        return Formateur::with(['user','modules'])->latest()->get();
+        return Formateur::with(['user', 'modules'])
+            ->latest()
+            ->get()
+            ->each(fn ($f) => $f->setRelation('formations', Formation::where('user_id', $f->user_id)->get(['id', 'titre'])));
     }
 
 
@@ -47,6 +53,16 @@ class FormateurService
                 $formateur->modules()->sync($data['modules']);
             }
 
+            // Assignation de formation : ATTENTION, c'est CE champ
+            // (formations.user_id) qui détermine réellement l'accès du
+            // formateur au contenu (voir ChecksFormationOwnership) — pas
+            // les modules, qui ne sont qu'informatifs. Sans cette
+            // assignation, un formateur nouvellement créé ne peut gérer
+            // AUCUN contenu, même avec des modules sélectionnés.
+            if (!empty($data['formation_id'])) {
+                Formation::where('id', $data['formation_id'])->update(['user_id' => $user->id]);
+            }
+
             // Recharger les modules avant d'envoyer le mail
             $formateur->load(['user', 'modules']);
 
@@ -64,7 +80,9 @@ class FormateurService
     //Afficher un formateur
     public function getById(int $id):Formateur
     {
-        return Formateur::with(['user', 'modules'])->findOrFail($id);
+        $formateur = Formateur::with(['user', 'modules'])->findOrFail($id);
+        $formateur->setRelation('formations', Formation::where('user_id', $formateur->user_id)->get(['id', 'titre']));
+        return $formateur;
     }
 
 
@@ -95,6 +113,20 @@ class FormateurService
         if (isset($data['modules'])) {
 
             $formateur->modules()->sync($data['modules']);
+        }
+
+        // Réassignation de formation (même logique qu'à la création) —
+        // isset() et pas empty() : transmettre formation_id: null doit
+        // pouvoir retirer l'assignation actuelle si l'admin le souhaite.
+        if (array_key_exists('formation_id', $data)) {
+            // Retire d'abord ce formateur de toute formation qu'il
+            // possédait déjà (au cas où il changerait d'assignation),
+            // avant d'assigner la nouvelle.
+            Formation::where('user_id', $formateur->user_id)->update(['user_id' => null]);
+
+            if (!empty($data['formation_id'])) {
+                Formation::where('id', $data['formation_id'])->update(['user_id' => $formateur->user_id]);
+            }
         }
 
         return $formateur->load(['user','modules']);

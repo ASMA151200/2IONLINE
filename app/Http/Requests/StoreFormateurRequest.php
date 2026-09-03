@@ -29,7 +29,8 @@ class StoreFormateurRequest extends FormRequest
             'email' => 'required|email|unique:users,email',
             'specialite' =>'required|string',
             'modules' =>'nullable|array',
-            'modules.*' =>'exists:modules,id'
+            'modules.*' =>'exists:modules,id',
+            'formation_id' => 'nullable|exists:formations,id',
 
         ];
     }
