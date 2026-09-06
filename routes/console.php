@@ -1,8 +1,9 @@
 <?php
 
 use App\Models\Alerte;
+use App\Models\Formation;
 use App\Models\User;
-use App\Notifications\AlerteCoursNotification;
+use App\Notifications\AlerteNotification;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -19,15 +20,29 @@ Artisan::command('push:test {userId?}', function (?int $userId = null) {
         return;
     }
 
+    // ATTENTION: utilisait auparavant 'cours_id' (champ inexistant,
+    // Alerte utilise 'formation_id' depuis la correction du modèle) et
+    // AlerteCoursNotification (classe dupliquée, cassée pour la même
+    // raison, supprimée) — cette commande n'avait donc jamais pu
+    // fonctionner. Corrigée pour utiliser une vraie formation existante
+    // et la classe de notification réellement utilisée en production
+    // (AlerteNotification, celle branchée sur AlerteController).
+    $formation = Formation::first();
+
+    if (! $formation) {
+        $this->error("Aucune formation trouvée — impossible de tester sans formation_id valide.");
+        return;
+    }
+
     $alerte = new Alerte([
         'titre' => 'Test push',
         'message' => 'Ceci est une notification de test.',
-        'cours_id' => 1,
+        'formation_id' => $formation->id,
         'type' => 'annonce',
         'formateur_id' => $user->id,
     ]);
 
-    $user->notify(new AlerteCoursNotification($alerte));
+    $user->notify(new AlerteNotification($alerte));
 
     $this->info('Notification push de test envoyée à ' . $user->email);
 })->purpose('Envoyer une notification push de test à un utilisateur');
