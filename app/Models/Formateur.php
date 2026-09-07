@@ -15,7 +15,12 @@ class Formateur extends Model
 
     protected $fillable = [
         'user_id',
-        'specialite'
+        'specialite',
+        'disponible_mentorat',
+    ];
+
+    protected $casts = [
+        'disponible_mentorat' => 'boolean',
     ];
 
 

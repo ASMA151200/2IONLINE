@@ -56,7 +56,56 @@ class MessageController extends Controller
         return response()->json(['success' => true, 'data' => $messages]);
     }
 
-    /** Envoyer un message */
+    /**
+     * Contacts avec qui l'utilisateur connecté peut légitimement démarrer
+     * une NOUVELLE conversation (pas déjà présents dans la liste des
+     * conversations existantes) — sans ça, il n'existe aucun moyen de
+     * contacter quelqu'un pour la première fois.
+     * - étudiant  : le(s) formateur(s) de ses formations actives + les admins
+     * - formateur : les étudiants activement inscrits à ses formations + les admins
+     * - admin     : tous les formateurs et étudiants
+     * - partenaire: les admins uniquement
+     */
+    public function mesContacts(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $contacts = collect();
+
+        if ($user->role === 'etudiant') {
+            $formationIds = \App\Models\Inscription::where('user_id', $user->id)
+                ->where('statut', 'actif')
+                ->pluck('formation_id');
+
+            $contacts = User::where('role', 'formateur')
+                ->whereIn('id', \App\Models\Formation::whereIn('id', $formationIds)->pluck('user_id'))
+                ->get();
+        } elseif ($user->role === 'formateur') {
+            $formationIds = \App\Models\Formation::where('user_id', $user->id)->pluck('id');
+
+            $contacts = User::where('role', 'etudiant')
+                ->whereIn('id', \App\Models\Inscription::whereIn('formation_id', $formationIds)->where('statut', 'actif')->pluck('user_id'))
+                ->get();
+        } elseif ($user->role === 'admin') {
+            $contacts = User::whereIn('role', ['formateur', 'etudiant'])->get();
+        }
+
+        // Les admins sont toujours des contacts valides pour tout le
+        // monde (sauf pour un admin lui-même, évidemment).
+        if ($user->role !== 'admin') {
+            $contacts = $contacts->concat(User::where('role', 'admin')->get());
+        }
+
+        $data = $contacts->unique('id')->values()->map(fn ($u) => [
+            'userId' => $u->id,
+            'prenom' => $u->prenom,
+            'nom' => $u->nom,
+            'role' => $u->role,
+        ]);
+
+        return response()->json(['success' => true, 'data' => $data]);
+    }
+
+
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([

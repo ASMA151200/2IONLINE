@@ -251,11 +251,13 @@ Route::prefix('v1')->group(function (){
 
         // Messagerie privée
         Route::get('/messages/conversations', [MessageController::class, 'conversations']);
+        Route::get('/messages/contacts', [MessageController::class, 'mesContacts']);
         Route::get('/messages/{userId}', [MessageController::class, 'withUser']);
         Route::post('/messages', [MessageController::class, 'store']);
 
         // Mentorat
         Route::get('/mentors-disponibles', [MentoratController::class, 'mentorsDisponibles']);
+        Route::put('/mon-profil-mentorat', [MentoratController::class, 'updateDisponibilite']);
         Route::post('/mentorats/demander', [MentoratController::class, 'demander']);
         Route::get('/mes-mentorats', [MentoratController::class, 'mesMentorats']);
         Route::get('/mentorats/demandes-recues', [MentoratController::class, 'demandesRecues']);

@@ -10,7 +10,8 @@ class MentoratController extends Controller
 {
     /**
      * Mentors potentiels : alumni ayant choisi d'être visibles dans
-     * l'annuaire (alumni_visible), ou formateurs de la plateforme.
+     * l'annuaire (alumni_visible), ou formateurs s'étant explicitement
+     * marqués disponibles pour le mentorat (disponible_mentorat).
      */
     public function mentorsDisponibles(): JsonResponse
     {
@@ -26,6 +27,7 @@ class MentoratController extends Controller
             ]);
 
         $formateurs = \App\Models\Formateur::with('user')
+            ->where('disponible_mentorat', true)
             ->get()
             ->map(fn ($f) => [
                 'userId' => $f->user->id,
@@ -36,6 +38,29 @@ class MentoratController extends Controller
             ]);
 
         return response()->json(['success' => true, 'data' => $alumni->concat($formateurs)->values()]);
+    }
+
+    /**
+     * Le formateur connecté active/désactive sa propre disponibilité
+     * pour le mentorat.
+     */
+    public function updateDisponibilite(Request $request): JsonResponse
+    {
+        $data = $request->validate(['disponible_mentorat' => 'required|boolean']);
+
+        $formateur = $request->user()->formateur;
+
+        if (!$formateur) {
+            return response()->json(['success' => false, 'message' => 'Profil formateur introuvable'], 404);
+        }
+
+        $formateur->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => $data['disponible_mentorat'] ? 'Disponibilité activée' : 'Disponibilité désactivée',
+            'data' => $formateur,
+        ]);
     }
 
     /** Un étudiant demande un mentorat à un alumni/formateur */
