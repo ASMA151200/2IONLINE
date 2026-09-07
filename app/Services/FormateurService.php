@@ -20,12 +20,27 @@ class FormateurService
     // Liste formateurs — inclut les formations dont ce formateur est
     // réellement propriétaire (formations.user_id), pas juste les
     // modules, pour que l'admin voie/gère cette assignation.
+    //
+    // CORRIGÉ: exécutait auparavant une requête Formation SÉPARÉE pour
+    // CHAQUE formateur (N+1 classique, via ->each() avec une requête à
+    // l'intérieur) — avec ne serait-ce qu'une vingtaine de formateurs,
+    // ça fait 21 requêtes au lieu de 2, contribuant très probablement au
+    // ralentissement/timeout observé au chargement de la page
+    // admin/utilisateurs (qui interroge formateurs, étudiants ET
+    // partenaires en parallèle).
     public function getAll()
     {
-        return Formateur::with(['user', 'modules'])
-            ->latest()
-            ->get()
-            ->each(fn ($f) => $f->setRelation('formations', Formation::where('user_id', $f->user_id)->get(['id', 'titre'])));
+        $formateurs = Formateur::with(['user', 'modules'])->latest()->get();
+
+        $formationsByUserId = Formation::whereIn('user_id', $formateurs->pluck('user_id'))
+            ->get(['id', 'titre', 'user_id'])
+            ->groupBy('user_id');
+
+        $formateurs->each(
+            fn ($f) => $f->setRelation('formations', $formationsByUserId->get($f->user_id, collect()))
+        );
+
+        return $formateurs;
     }
 
 
