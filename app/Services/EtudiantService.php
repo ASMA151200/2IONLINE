@@ -85,7 +85,7 @@ class EtudiantService
     }
 
     // update etudiant
-    public function update(etudiant $etudiant, array $data): etudiant
+    public function update(Etudiant $etudiant, array $data): Etudiant
     {
         $etudiant->user->update([
             'prenom'    => $data['prenom'] ?? $etudiant->user->prenom,
