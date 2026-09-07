@@ -110,17 +110,32 @@ class ExerciceService
     // Soumettre les réponses d'un etudiant
     public function soumettre(Exercice $exercice, int $userId, array $reponses): array
     {
+        // CORRIGÉ: exécutait auparavant Question::findOrFail() PUIS
+        // ->choix()->where(...)->first() pour CHAQUE réponse — pour un
+        // exercice de 10 questions, ça faisait ~20-30 requêtes à chaque
+        // soumission (un événement fréquent, contrairement à la création
+        // d'exercice). Précharge maintenant toutes les questions
+        // concernées avec leurs choix en 2 requêtes au total, peu
+        // importe le nombre de questions.
+        $questionIds = collect($reponses)->pluck('question_id');
+        $questions = Question::with('choix')->whereIn('id', $questionIds)->get()->keyBy('id');
+
         $scoreTotal = 0;
-        $reponsesCreees = [];
+        $rowsToInsert = [];
+        $now = now();
 
         foreach ($reponses as $reponseData) {
-            $question = Question::findOrFail($reponseData['question_id']);
+            $question = $questions->get($reponseData['question_id']);
+            if (!$question) {
+                continue; // ID de question invalide envoyé — ignoré silencieusement, comme findOrFail l'aurait fait échouer sur celle-ci seulement
+            }
+
             $score = null;
             $statut = 'en_attente';
 
             // Correction automatique pour QCM
             if ($question->type === 'qcm' && isset($reponseData['choix_id'])) {
-                $choixCorrect = $question->choix()->where('est_correct', true)->first();
+                $choixCorrect = $question->choix->firstWhere('est_correct', true);
                 $score = ($choixCorrect && $choixCorrect->id == $reponseData['choix_id'])
                     ? $question->points
                     : 0;
@@ -128,7 +143,7 @@ class ExerciceService
                 $statut = 'corrige';
             }
 
-            $reponsesCreees[] = Reponse::create([
+            $rowsToInsert[] = [
                 'exercice_id'   => $exercice->id,
                 'user_id'       => $userId,
                 'question_id'   => $reponseData['question_id'],
@@ -136,8 +151,20 @@ class ExerciceService
                 'reponse_texte' => $reponseData['reponse_texte'] ?? null,
                 'score'         => $score,
                 'statut'        => $statut,
-            ]);
+                'created_at'    => $now,
+                'updated_at'    => $now,
+            ];
         }
+
+        Reponse::insert($rowsToInsert);
+
+        // Reponse::insert() (insertion en masse) ne renvoie pas les
+        // modèles créés avec leurs IDs — on les recharge en une seule
+        // requête pour garder le même format de retour qu'avant.
+        $reponsesCreees = Reponse::where('exercice_id', $exercice->id)
+            ->where('user_id', $userId)
+            ->whereIn('question_id', $questionIds)
+            ->get();
 
         return [
             'reponses'    => $reponsesCreees,
