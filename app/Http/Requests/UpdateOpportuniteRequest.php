@@ -23,6 +23,8 @@ class UpdateOpportuniteRequest extends FormRequest
 
             'documents' => 'sometimes|file|mimes:pdf',
 
+            'image' => 'sometimes|image|mimes:jpg,jpeg,png,webp|max:5120',
+
             'date_debut' => 'sometimes|date',
 
             'date_fin' => 'sometimes|date',

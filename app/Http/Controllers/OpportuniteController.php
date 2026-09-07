@@ -25,6 +25,11 @@ class OpportuniteController extends Controller
                 ->store('opportunites/docs', 'public');
         }
 
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')
+                ->store('opportunites/images', 'public');
+        }
+
         $opp = Opportunite::create($data);
 
         return response()->json([
@@ -44,13 +49,26 @@ class OpportuniteController extends Controller
     {
         $data = $request->validated();
 
+        // getRawOriginal() : ->documents/->image passent maintenant par
+        // un accesseur qui renvoie toujours une URL complète — Storage::
+        // delete() a besoin du chemin RELATIF brut, sinon la suppression
+        // échoue silencieusement.
         if ($request->hasFile('documents')) {
-            if ($opportunite->documents) {
-                Storage::disk('public')->delete($opportunite->documents);
+            if ($opportunite->getRawOriginal('documents')) {
+                Storage::disk('public')->delete($opportunite->getRawOriginal('documents'));
             }
 
             $data['documents'] = $request->file('documents')
                 ->store('opportunites/docs', 'public');
+        }
+
+        if ($request->hasFile('image')) {
+            if ($opportunite->getRawOriginal('image')) {
+                Storage::disk('public')->delete($opportunite->getRawOriginal('image'));
+            }
+
+            $data['image'] = $request->file('image')
+                ->store('opportunites/images', 'public');
         }
 
         $opportunite->update($data);
@@ -63,8 +81,12 @@ class OpportuniteController extends Controller
 
     public function destroy(Opportunite $opportunite)
     {
-        if ($opportunite->documents) {
-            Storage::disk('public')->delete($opportunite->documents);
+        if ($opportunite->getRawOriginal('documents')) {
+            Storage::disk('public')->delete($opportunite->getRawOriginal('documents'));
+        }
+
+        if ($opportunite->getRawOriginal('image')) {
+            Storage::disk('public')->delete($opportunite->getRawOriginal('image'));
         }
 
         $opportunite->delete();

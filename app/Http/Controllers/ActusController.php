@@ -54,8 +54,13 @@ class ActusController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            if ($actus->image) {
-                Storage::disk('public')->delete($actus->image);
+            // getRawOriginal() : $actus->image passe maintenant par
+            // l'accesseur qui renvoie toujours une URL complète — Storage::
+            // delete() a besoin du chemin RELATIF brut, jamais de l'URL,
+            // sinon la suppression échoue silencieusement (aucun fichier
+            // n'est réellement supprimé, juste jamais d'erreur visible).
+            if ($actus->getRawOriginal('image')) {
+                Storage::disk('public')->delete($actus->getRawOriginal('image'));
             }
 
             $data['image'] = $request->file('image')
@@ -72,8 +77,8 @@ class ActusController extends Controller
 
     public function destroy(Actus $actus)
     {
-        if ($actus->image) {
-            Storage::disk('public')->delete($actus->image);
+        if ($actus->getRawOriginal('image')) {
+            Storage::disk('public')->delete($actus->getRawOriginal('image'));
         }
 
         $actus->delete();

@@ -64,6 +64,17 @@ Route::prefix('v1')->group(function (){
     Route::apiResource('categories', CategorieController::class)->only(['index', 'show']);
     Route::apiResource('formations', FormationController::class)->only(['index', 'show']);
 
+    // ATTENTION: aucune route publique n'existait pour actus/opportunites
+    // — la seule inscription de ces deux ressources (voir plus bas, dans
+    // le groupe auth:sanctum général) exigeait une connexion pour la
+    // simple LECTURE (cassant les pages publiques /actualites et
+    // /opportunites du site vitrine) ET n'importe quel utilisateur
+    // connecté pouvait créer/modifier/supprimer une actu ou une
+    // opportunité (aucune restriction de rôle). Corrigé : lecture
+    // publique ici, écriture restreinte à admin/formateur plus bas.
+    Route::apiResource('actus', ActusController::class)->only(['index', 'show']);
+    Route::apiResource('opportunites', OpportuniteController::class)->only(['index', 'show']);
+
     // Dons ponctuels — publics, un visiteur non connecté doit pouvoir donner
     Route::post('/dons', [DonController::class, 'initiate']);
     Route::get('/dons/total', [DonController::class, 'total']);
@@ -301,11 +312,13 @@ Route::prefix('v1')->group(function (){
        ->middleware('auth:sanctum');
         Route::apiResource('certificats', CertificatController::class)->only(['index', 'show']);
 
-        //actus
-        Route::apiResource('actus', ActusController::class);
+        //actus — lecture publique déjà enregistrée plus haut, seule
+        // l'écriture (create/update/delete) est ici, restreinte à
+        // admin/formateur.
+        Route::apiResource('actus', ActusController::class)->except(['index', 'show']);
 
-        //opportunites
-        Route::apiResource('opportunites', OpportuniteController::class);
+        //opportunites — même logique
+        Route::apiResource('opportunites', OpportuniteController::class)->except(['index', 'show']);
 
         //paiements
         Route::apiResource('paiements', PaiementController::class);

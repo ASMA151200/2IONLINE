@@ -23,6 +23,8 @@ class StoreOpportuniteRequest extends FormRequest
 
             'documents' => 'nullable|file|mimes:pdf',
 
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+
             'date_debut' => 'required|date',
 
             'date_fin' => 'required|date|after_or_equal:date_debut',
