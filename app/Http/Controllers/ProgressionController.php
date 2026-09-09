@@ -20,13 +20,21 @@ class ProgressionController extends Controller
      */
     public function index(\Illuminate\Http\Request $request)
     {
+        // SÉCURITÉ: même faille — un étudiant pouvait voir la
+        // progression (avancement leçon par leçon) de n'importe quel
+        // autre utilisateur via ?user_id=.
+        $filters = $request->only(['user_id', 'lecon_id']);
+        if (in_array($request->user()->role, ['etudiant', 'partenaire'])) {
+            $filters['user_id'] = $request->user()->id;
+        }
+
         return response()->json([
             'success'=>true,
 
             'data'=>
             $this
             ->progressionService
-            ->getAll($request->only(['user_id', 'lecon_id']))
+            ->getAll($filters)
         ]);
     }
 

@@ -15,9 +15,17 @@ class PaiementController extends Controller
 
     public function index(\Illuminate\Http\Request $request)
     {
+        // SÉCURITÉ: même faille que ResultatController — un étudiant
+        // pouvait voir les paiements de n'importe qui via ?user_id=.
+        // Forcé sur ses propres paiements pour étudiant/partenaire.
+        $filters = $request->only(['user_id', 'formation_id']);
+        if (in_array($request->user()->role, ['etudiant', 'partenaire'])) {
+            $filters['user_id'] = $request->user()->id;
+        }
+
         return response()->json([
             'success' => true,
-            'data' => $this->paiementService->getAll($request->only(['user_id', 'formation_id']))
+            'data' => $this->paiementService->getAll($filters)
         ]);
     }
 

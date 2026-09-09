@@ -11,9 +11,20 @@ class ResultatController extends Controller
     {
         $query = Resultat::with(['user', 'examen']);
 
-        if ($request->filled('user_id')) {
+        // SÉCURITÉ: sans ça, n'importe quel étudiant connecté pouvait
+        // voir les résultats d'examen de N'IMPORTE QUEL AUTRE
+        // utilisateur en passant ?user_id=<un autre id> — une vraie
+        // fuite de confidentialité. Un étudiant/partenaire est
+        // désormais toujours forcé sur ses propres résultats, quel que
+        // soit le user_id demandé ; admin/formateur gardent la
+        // visibilité complète nécessaire à leur rôle.
+        $role = $request->user()->role;
+        if (in_array($role, ['etudiant', 'partenaire'])) {
+            $query->where('user_id', $request->user()->id);
+        } elseif ($request->filled('user_id')) {
             $query->where('user_id', $request->input('user_id'));
         }
+
         if ($request->filled('examen_id')) {
             $query->where('examen_id', $request->input('examen_id'));
         }

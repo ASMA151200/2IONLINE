@@ -132,6 +132,9 @@ Route::prefix('v1')->group(function (){
             Route::apiResource('categories',CategorieController::class)->except(['index','show']); //categories
             Route::apiResource('formations',FormationController::class)->except(['index','show']);;  //formations
 
+            Route::apiResource('questions', QuestionController::class)->except(['index', 'show']);
+
+
             // Modules/leçons : créer, modifier, supprimer (le contrôleur
             // vérifie en plus que le formateur est bien propriétaire de la
             // formation concernée — un formateur ne peut pas modifier le
@@ -283,8 +286,10 @@ Route::prefix('v1')->group(function (){
         //progressions
         Route::apiResource('progressions', ProgressionController::class);
 
-        //questions
-        Route::apiResource('questions', QuestionController::class);
+        //questions — lecture ouverte à tout connecté (un étudiant en
+        // train de passer un examen/exercice doit pouvoir les voir),
+        // écriture restreinte plus bas au groupe role:admin,formateur.
+        Route::apiResource('questions', QuestionController::class)->only(['index', 'show']);
 
         //reponses — PAS de CRUD générique exposé ici volontairement.
         // L'ancien Route::apiResource('reponses', ReponseController::class)

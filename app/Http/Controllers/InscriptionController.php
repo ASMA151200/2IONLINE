@@ -18,11 +18,19 @@ class InscriptionController extends Controller
      */
     public function index(\Illuminate\Http\Request $request)
     {
+        // SÉCURITÉ: même faille — un étudiant pouvait voir les
+        // inscriptions (et donc l'identité des autres apprenants
+        // inscrits) de n'importe qui via ?user_id=.
+        $filters = $request->only(['user_id', 'formation_id']);
+        if (in_array($request->user()->role, ['etudiant', 'partenaire'])) {
+            $filters['user_id'] = $request->user()->id;
+        }
+
         return response()->json([
             'success'=>true,
             'data'=>$this
                     ->inscriptionService
-                    ->getAll($request->only(['user_id', 'formation_id']))
+                    ->getAll($filters)
         ]);
     }
 
