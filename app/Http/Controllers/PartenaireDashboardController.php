@@ -97,21 +97,32 @@ class PartenaireDashboardController extends Controller
             ->where('statut', 'actif')
             ->get();
 
-        $data = $inscriptions->map(function ($inscription) use ($formationId) {
+        // CORRIGÉ: faisait auparavant 3 requêtes séparées PAR étudiant
+        // (progression totale, progression terminée, moyenne des
+        // résultats) à l'intérieur du ->map() — pour une formation de 20
+        // étudiants financée, ça faisait 60 requêtes. Préchargé en 3
+        // requêtes au total, peu importe le nombre d'étudiants.
+        $userIds = $inscriptions->pluck('user_id');
+
+        $totalLeconsParUser = Progression::whereIn('user_id', $userIds)
+            ->whereHas('lecon.module', fn ($q) => $q->where('formation_id', $formationId))
+            ->get()->countBy('user_id');
+
+        $leconsTermineesParUser = Progression::whereIn('user_id', $userIds)
+            ->where('statut', 'termine')
+            ->whereHas('lecon.module', fn ($q) => $q->where('formation_id', $formationId))
+            ->get()->countBy('user_id');
+
+        $moyenneParUser = Resultat::whereIn('user_id', $userIds)
+            ->whereHas('examen', fn ($q) => $q->where('formation_id', $formationId))
+            ->get()->groupBy('user_id')->map(fn ($group) => $group->avg('score'));
+
+        $data = $inscriptions->map(function ($inscription) use ($totalLeconsParUser, $leconsTermineesParUser, $moyenneParUser) {
             $user = $inscription->user;
 
-            $totalLecons = Progression::where('user_id', $user->id)
-                ->whereHas('lecon.module', fn ($q) => $q->where('formation_id', $formationId))
-                ->count();
-
-            $leconsTerminees = Progression::where('user_id', $user->id)
-                ->where('statut', 'termine')
-                ->whereHas('lecon.module', fn ($q) => $q->where('formation_id', $formationId))
-                ->count();
-
-            $moyenneResultats = Resultat::where('user_id', $user->id)
-                ->whereHas('examen', fn ($q) => $q->where('formation_id', $formationId))
-                ->avg('score');
+            $totalLecons = $totalLeconsParUser->get($user->id, 0);
+            $leconsTerminees = $leconsTermineesParUser->get($user->id, 0);
+            $moyenneResultats = $moyenneParUser->get($user->id);
 
             return [
                 'userId' => (string) $user->id,
