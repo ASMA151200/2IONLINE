@@ -150,6 +150,7 @@ Route::prefix('v1')->group(function (){
             Route::post('/exercices',  [ExerciceController::class, 'store']);
             Route::put('/exercices/{exercice}',  [ExerciceController::class, 'update']);
             Route::delete('/exercices/{exercice}', [ExerciceController::class, 'destroy']);
+            Route::get('/exercices/{exercice}/resultats-etudiants', [ExerciceController::class, 'resultatsParEtudiant']);
 
             // Corriger une question ouverte
             Route::put('/reponses/{reponse}/corriger', [ExerciceController::class, 'corriger']);

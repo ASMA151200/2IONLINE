@@ -164,4 +164,21 @@ class ExerciceController extends Controller
             'data'    => $this->exerciceService->resultats($exercice, $userId)
         ]);
     }
+
+    /**
+     * Vue d'ensemble pour le formateur/admin : chaque apprenant ayant
+     * soumis cette évaluation, avec sa note agrégée sur note_max — sans
+     * ça, un professeur devait interroger /resultats étudiant par
+     * étudiant en devinant leurs IDs un par un.
+     */
+    public function resultatsParEtudiant(Request $request, Exercice $exercice)
+    {
+        $exercice->load('lecon.module');
+        $this->authorizeFormationOwner($exercice->lecon->module->formation_id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->exerciceService->resultatsParEtudiant($exercice),
+        ]);
+    }
 }

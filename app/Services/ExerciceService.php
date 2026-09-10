@@ -193,6 +193,40 @@ class ExerciceService
                                ->get();
     }
 
+    /**
+     * Une ligne par étudiant ayant soumis au moins une réponse à cet
+     * exercice : nom complet, score total obtenu (somme des points
+     * déjà corrigés — les réponses ouvertes 'en_attente' ne comptent
+     * pas encore), note maximale, et si une correction manuelle reste
+     * en attente.
+     */
+    public function resultatsParEtudiant(Exercice $exercice): array
+    {
+        $totalPoints = $exercice->questions()->sum('points');
+
+        $reponses = Reponse::with('etudiant')
+            ->where('exercice_id', $exercice->id)
+            ->get()
+            ->groupBy('user_id');
+
+        return $reponses->map(function ($groupe) use ($totalPoints) {
+            $etudiant = $groupe->first()->etudiant;
+            $scoreObtenu = $groupe->sum('score');
+            $enAttente = $groupe->contains('statut', 'en_attente');
+
+            return [
+                'user_id' => $etudiant?->id,
+                'prenom' => $etudiant?->prenom,
+                'nom' => $etudiant?->nom,
+                'score' => $scoreObtenu,
+                'note_max' => $totalPoints,
+                'pourcentage' => $totalPoints > 0 ? round(($scoreObtenu / $totalPoints) * 100) : 0,
+                'en_attente_correction' => $enAttente,
+                'soumis_le' => $groupe->max('created_at'),
+            ];
+        })->values()->all();
+    }
+
     // Supprimer un exercice
     public function delete(Exercice $exercice): void
     {
