@@ -12,12 +12,28 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Artisan::command('push:test {userId?}', function (?int $userId = null) {
-    $user = $userId ? User::find($userId) : User::first();
+Artisan::command('push:test {target?}', function (?string $target = null) {
+    // Accepte soit un ID numérique, soit un email directement — par
+    // défaut binetaseck.incubinstitut@gmail.com plutôt que le premier
+    // utilisateur de la base (souvent un compte admin de test sans
+    // rapport avec ce qu'on veut réellement vérifier).
+    $target = $target ?? 'binetaseck.incubinstitut@gmail.com';
+
+    $user = is_numeric($target)
+        ? User::find((int) $target)
+        : User::where('email', $target)->first();
 
     if (! $user) {
-        $this->error('Aucun utilisateur trouvé.');
+        $this->error("Aucun utilisateur trouvé pour « {$target} ».");
         return;
+    }
+
+    // Sans ça, un "envoyé avec succès" peut être trompeur : la
+    // notification part bien du serveur, mais n'a littéralement nulle
+    // part où aller si l'utilisateur n'a jamais autorisé les
+    // notifications sur un navigateur (bouton cloche jamais cliqué).
+    if ($user->pushSubscriptions()->count() === 0) {
+        $this->warn("⚠ {$user->email} n'a aucun abonnement push actif — il doit d'abord activer les notifications depuis l'interface (bouton cloche) sur un navigateur, sinon ce test n'aura aucun effet visible.");
     }
 
     // ATTENTION: utilisait auparavant 'cours_id' (champ inexistant,
