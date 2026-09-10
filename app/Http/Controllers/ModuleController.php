@@ -67,8 +67,11 @@ class ModuleController extends Controller
             ], 201);
         }catch(\Exception $e){
             return response()->json([
-                'message' => 'une erreur inattendue est survenue',
-                'error' => $e->getMessage()
+                // CORRIGÉ: le vrai message d'exception était relégué dans un
+                // champ "error" séparé que le frontend (apiClient) ne lit
+                // jamais (il ne regarde que "message") — la page affichait donc
+                // toujours un texte générique, quelle que soit la cause réelle.
+                'message' => $e->getMessage()
             ]);
         }
 

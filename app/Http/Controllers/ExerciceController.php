@@ -57,9 +57,15 @@ class ExerciceController extends Controller
                 'data'    => $exercice
             ], 201);
         } catch (\Exception $e) {
+            // CORRIGÉ: le vrai message d'exception était relégué dans un
+            // champ "error" séparé que le frontend (apiClient) ne lit
+            // jamais (il ne regarde que "message") — résultat, la page
+            // affichait TOUJOURS un texte générique, quelle que soit la
+            // cause réelle de l'échec. On expose maintenant le vrai
+            // message directement, exploitable en un clic depuis
+            // l'interface au lieu de deviner à l'aveugle.
             return response()->json([
-                'message' => 'une erreur inattendue est survenue',
-                'error' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 422);
         }
     }
@@ -126,9 +132,9 @@ class ExerciceController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
+            // Voir le commentaire équivalent dans store() ci-dessus.
             return response()->json([
-                'message' => 'Une erreur inattendue est survenue',
-                'error' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 422);
         }
     }
