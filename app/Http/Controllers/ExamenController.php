@@ -22,9 +22,20 @@ class ExamenController extends Controller
      * admin — formateur = ses formations, étudiant = ses inscriptions
      * actives)
      */
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         $query = Examen::with('formation')->latest();
+
+        // CORRIGÉ: le paramètre ?formation_id= était accepté par le
+        // frontend (examenService.getExamensByFormation()) mais
+        // totalement ignoré ici — aucun Request n'était même injecté
+        // dans cette méthode. Résultat : impossible de lister les
+        // certifications d'UNE formation précise, seul un mélange de
+        // toutes les formations accessibles était renvoyé.
+        if ($request->filled('formation_id')) {
+            $query->where('formation_id', $request->input('formation_id'));
+        }
+
         $this->scopeToAccessibleFormations($query);
 
         return response()->json([
