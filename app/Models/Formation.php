@@ -37,6 +37,19 @@ class Formation extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * Formateurs pouvant intervenir dans cette formation (créer/modifier
+     * modules, leçons, évaluations, sessions live...) — plusieurs-à-
+     * plusieurs, contrairement à "user_id" qui ne représente qu'un
+     * propriétaire principal à titre informatif. C'est CETTE relation
+     * qui fait foi pour le contrôle d'accès (voir ChecksFormationOwnership).
+     */
+    public function formateurs(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'formation_formateur', 'formation_id', 'user_id')
+            ->withTimestamps();
+    }
+
     public function modules(): HasMany
     {
         return $this->hasMany(Module::class);

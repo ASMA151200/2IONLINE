@@ -97,6 +97,17 @@ class User extends Authenticatable
         return $this->hasOne(Formateur::class);
     }
 
+    /**
+     * Formations dans lesquelles ce formateur peut intervenir
+     * (plusieurs-à-plusieurs) — voir Formation::formateurs() pour la
+     * relation inverse et le contexte complet.
+     */
+    public function formationsEnseignees(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Formation::class, 'formation_formateur', 'user_id', 'formation_id')
+            ->withTimestamps();
+    }
+
     public function etudiant(): HasOne
     {
         return $this->hasOne(Etudiant::class);

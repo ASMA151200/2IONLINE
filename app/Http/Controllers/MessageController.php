@@ -76,11 +76,16 @@ class MessageController extends Controller
                 ->where('statut', 'actif')
                 ->pluck('formation_id');
 
+            // CORRIGÉ: utilisait Formation::pluck('user_id') (le seul
+            // "propriétaire principal") — un formateur intervenant dans
+            // cette formation SANS en être le propriétaire principal
+            // (table pivot formation_formateur) n'apparaissait jamais
+            // comme contact possible pour cet étudiant.
             $contacts = User::where('role', 'formateur')
-                ->whereIn('id', \App\Models\Formation::whereIn('id', $formationIds)->pluck('user_id'))
+                ->whereHas('formationsEnseignees', fn ($q) => $q->whereIn('formations.id', $formationIds))
                 ->get();
         } elseif ($user->role === 'formateur') {
-            $formationIds = \App\Models\Formation::where('user_id', $user->id)->pluck('id');
+            $formationIds = $user->formationsEnseignees()->pluck('formations.id');
 
             $contacts = User::where('role', 'etudiant')
                 ->whereIn('id', \App\Models\Inscription::whereIn('formation_id', $formationIds)->where('statut', 'actif')->pluck('user_id'))

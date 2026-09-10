@@ -7,16 +7,24 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
- * Vérifie qu'un formateur ne peut agir que sur le contenu des formations
- * dont il est le propriétaire (formations.user_id) — un admin passe
- * toujours. Utilisé par ModuleController, LeconController,
- * ExerciceController, ExamenController, DirectController.
+ * Vérifie qu'un formateur ne peut agir que sur le contenu des
+ * formations dans lesquelles il a été explicitement autorisé à
+ * intervenir — un admin passe toujours. Utilisé par ModuleController,
+ * LeconController, ExerciceController, ExamenController, DirectController,
+ * QuestionController, SearchController, ResultatController.
+ *
+ * RÉÉCRIT pour passer d'un modèle "un formateur = une seule formation"
+ * (formations.user_id) à une vraie relation plusieurs-à-plusieurs (table
+ * pivot formation_formateur) : un formateur peut désormais intervenir
+ * dans plusieurs formations, chacune accordée indépendamment par
+ * l'admin. Les signatures de toutes les méthodes restent identiques —
+ * aucun des contrôleurs qui utilisent ce trait n'a besoin d'être modifié.
  */
 trait ChecksFormationOwnership
 {
     /**
      * @throws HttpException (403) si le formateur connecté n'est ni admin
-     * ni propriétaire de la formation.
+     * ni autorisé à intervenir dans cette formation.
      */
     protected function authorizeFormationOwner(int|string $formationId): void
     {
@@ -30,26 +38,29 @@ trait ChecksFormationOwnership
             return;
         }
 
-        $isOwner = Formation::where('id', $formationId)->where('user_id', $user->id)->exists();
+        $isAutorise = Formation::where('id', $formationId)
+            ->whereHas('formateurs', fn ($q) => $q->where('users.id', $user->id))
+            ->exists();
 
-        if (!$isOwner) {
+        if (!$isAutorise) {
             abort(403, "Vous n'êtes pas autorisé à gérer le contenu de cette formation.");
         }
     }
 
     /**
-     * Restreint une requête Eloquent aux formations possédées par le
-     * formateur connecté (aucun effet pour un admin, qui voit tout).
-     * $formationColumn peut être une colonne directe ("formation_id") ou
-     * une relation imbriquée en notation pointée ("module.formation_id").
+     * Restreint une requête Eloquent aux formations dans lesquelles le
+     * formateur connecté est autorisé à intervenir (aucun effet pour un
+     * admin, qui voit tout). $formationColumn peut être une colonne
+     * directe ("formation_id") ou une relation imbriquée en notation
+     * pointée ("module.formation_id").
      */
     protected function scopeToOwnFormations($query, string $formationColumn = 'formation_id')
     {
         $user = Auth::user();
 
         if ($user && $user->role !== 'admin') {
-            $ownedFormationIds = Formation::where('user_id', $user->id)->pluck('id');
-            $this->applyFormationIdFilter($query, $formationColumn, $ownedFormationIds);
+            $autoriseesIds = Formation::whereHas('formateurs', fn ($q) => $q->where('users.id', $user->id))->pluck('id');
+            $this->applyFormationIdFilter($query, $formationColumn, $autoriseesIds);
         }
 
         return $query;
@@ -58,7 +69,7 @@ trait ChecksFormationOwnership
     /**
      * Autorise l'accès à une formation en LECTURE :
      * - admin : toujours
-     * - formateur : uniquement s'il en est le propriétaire
+     * - formateur : uniquement s'il est autorisé à y intervenir
      * - étudiant : uniquement s'il y a une inscription active
      * (statut = 'actif')
      *
@@ -95,7 +106,7 @@ trait ChecksFormationOwnership
     /**
      * Restreint une requête Eloquent en LECTURE selon le rôle :
      * - admin : tout
-     * - formateur : ses propres formations
+     * - formateur : les formations où il est autorisé à intervenir
      * - étudiant : les formations où il a une inscription active
      * $formationColumn peut être une colonne directe ("formation_id") ou
      * une relation imbriquée en notation pointée ("module.formation_id").
@@ -109,8 +120,8 @@ trait ChecksFormationOwnership
         }
 
         if ($user->role === 'formateur') {
-            $ownedFormationIds = Formation::where('user_id', $user->id)->pluck('id');
-            return $this->applyFormationIdFilter($query, $formationColumn, $ownedFormationIds);
+            $autoriseesIds = Formation::whereHas('formateurs', fn ($q) => $q->where('users.id', $user->id))->pluck('id');
+            return $this->applyFormationIdFilter($query, $formationColumn, $autoriseesIds);
         }
 
         $enrolledFormationIds = \App\Models\Inscription::where('user_id', $user->id)

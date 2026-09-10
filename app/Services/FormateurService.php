@@ -17,30 +17,13 @@ use Illuminate\Support\Facades\DB;
 class FormateurService
 {
 
-    // Liste formateurs — inclut les formations dont ce formateur est
-    // réellement propriétaire (formations.user_id), pas juste les
-    // modules, pour que l'admin voie/gère cette assignation.
-    //
-    // CORRIGÉ: exécutait auparavant une requête Formation SÉPARÉE pour
-    // CHAQUE formateur (N+1 classique, via ->each() avec une requête à
-    // l'intérieur) — avec ne serait-ce qu'une vingtaine de formateurs,
-    // ça fait 21 requêtes au lieu de 2, contribuant très probablement au
-    // ralentissement/timeout observé au chargement de la page
-    // admin/utilisateurs (qui interroge formateurs, étudiants ET
-    // partenaires en parallèle).
+    // Liste formateurs — inclut les formations dans lesquelles ce
+    // formateur est autorisé à intervenir (table pivot
+    // formation_formateur, plusieurs-à-plusieurs), pas juste les
+    // modules, pour que l'admin voie/gère ces accès.
     public function getAll()
     {
-        $formateurs = Formateur::with(['user', 'modules'])->latest()->get();
-
-        $formationsByUserId = Formation::whereIn('user_id', $formateurs->pluck('user_id'))
-            ->get(['id', 'titre', 'user_id'])
-            ->groupBy('user_id');
-
-        $formateurs->each(
-            fn ($f) => $f->setRelation('formations', $formationsByUserId->get($f->user_id, collect()))
-        );
-
-        return $formateurs;
+        return Formateur::with(['user', 'modules', 'user.formationsEnseignees'])->latest()->get();
     }
 
 
@@ -68,14 +51,16 @@ class FormateurService
                 $formateur->modules()->sync($data['modules']);
             }
 
-            // Assignation de formation : ATTENTION, c'est CE champ
-            // (formations.user_id) qui détermine réellement l'accès du
-            // formateur au contenu (voir ChecksFormationOwnership) — pas
-            // les modules, qui ne sont qu'informatifs. Sans cette
-            // assignation, un formateur nouvellement créé ne peut gérer
-            // AUCUN contenu, même avec des modules sélectionnés.
-            if (!empty($data['formation_id'])) {
-                Formation::where('id', $data['formation_id'])->update(['user_id' => $user->id]);
+            // Assignation de formation(s) : ATTENTION, c'est CETTE
+            // relation (table pivot formation_formateur) qui détermine
+            // réellement l'accès du formateur au contenu (voir
+            // ChecksFormationOwnership) — pas les modules, qui ne sont
+            // qu'informatifs. Sans assignation, un formateur nouvellement
+            // créé ne peut gérer AUCUN contenu, même avec des modules
+            // sélectionnés. Un formateur peut désormais intervenir dans
+            // PLUSIEURS formations — accepte un tableau formation_ids.
+            if (!empty($data['formation_ids'])) {
+                $user->formationsEnseignees()->sync($data['formation_ids']);
             }
 
             // Recharger les modules avant d'envoyer le mail
@@ -93,10 +78,9 @@ class FormateurService
 
 
     //Afficher un formateur
-    public function getById(int $id):Formateur
+    public function getById(int $id): Formateur
     {
-        $formateur = Formateur::with(['user', 'modules'])->findOrFail($id);
-        $formateur->setRelation('formations', Formation::where('user_id', $formateur->user_id)->get(['id', 'titre']));
+        $formateur = Formateur::with(['user', 'modules', 'user.formationsEnseignees'])->findOrFail($id);
         return $formateur;
     }
 
@@ -130,23 +114,18 @@ class FormateurService
             $formateur->modules()->sync($data['modules']);
         }
 
-        // Réassignation de formation (même logique qu'à la création) —
-        // isset() et pas empty() : transmettre formation_id: null doit
-        // pouvoir retirer l'assignation actuelle si l'admin le souhaite.
-        if (array_key_exists('formation_id', $data)) {
-            // Retire d'abord ce formateur de toute formation qu'il
-            // possédait déjà (au cas où il changerait d'assignation),
-            // avant d'assigner la nouvelle.
-            Formation::where('user_id', $formateur->user_id)->update(['user_id' => null]);
-
-            if (!empty($data['formation_id'])) {
-                Formation::where('id', $data['formation_id'])->update(['user_id' => $formateur->user_id]);
-            }
+        // Réassignation de formation(s) — isset() et pas empty() : un
+        // tableau vide formation_ids: [] doit pouvoir retirer TOUTES
+        // les assignations actuelles si l'admin le souhaite. sync()
+        // gère lui-même l'ajout ET le retrait en une seule opération,
+        // contrairement à l'ancien modèle à formation unique qui devait
+        // explicitement "libérer" l'ancienne avant d'assigner la
+        // nouvelle.
+        if (array_key_exists('formation_ids', $data)) {
+            $formateur->user->formationsEnseignees()->sync($data['formation_ids'] ?? []);
         }
 
-        return $formateur->load(['user','modules']);
-
-
+        return $formateur->load(['user', 'modules', 'user.formationsEnseignees']);
     }
 
     //Supprimer

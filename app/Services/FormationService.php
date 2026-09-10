@@ -31,8 +31,15 @@ class FormationService
             $q->select('id', 'titre', 'ordre', 'formation_id')->orderBy('ordre');
         }])->latest();
 
+        // CORRIGÉ: filtrait auparavant uniquement sur formations.user_id
+        // (le seul "propriétaire principal") — un formateur autorisé à
+        // intervenir dans une formation SANS en être le propriétaire
+        // principal (table pivot formation_formateur, modèle plusieurs-
+        // à-plusieurs) ne la voyait alors dans AUCUNE de ses pages de
+        // gestion (leçons, modules, exercices, examens, sessions live —
+        // toutes utilisent ce même endpoint pour "mes formations").
         if ($userId !== null) {
-            $query->where('user_id', $userId);
+            $query->whereHas('formateurs', fn ($q) => $q->where('users.id', $userId));
         }
 
         return $query->get();
@@ -48,7 +55,23 @@ class FormationService
             $data['image'] = $data['image']->store('formations/images', 'public');
         }
 
-        return Formation::create($data);
+        $formation = Formation::create($data);
+
+        // Si c'est un formateur (pas un admin) qui crée cette formation,
+        // on l'ajoute automatiquement à la table pivot
+        // formation_formateur — sinon, avec le nouveau modèle plusieurs-
+        // à-plusieurs, il n'aurait paradoxalement pas le droit de gérer
+        // le contenu de la formation qu'il vient lui-même de créer
+        // (formations.user_id seul n'est plus la source de vérité pour
+        // l'accès, voir ChecksFormationOwnership).
+        if (!empty($data['user_id'])) {
+            $createur = \App\Models\User::find($data['user_id']);
+            if ($createur && $createur->role === 'formateur') {
+                $formation->formateurs()->syncWithoutDetaching([$createur->id]);
+            }
+        }
+
+        return $formation;
     }
 
     //Afficher une formation (usage interne — le endpoint public show()

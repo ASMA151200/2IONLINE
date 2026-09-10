@@ -30,7 +30,12 @@ class StoreFormateurRequest extends FormRequest
             'specialite' =>'required|string',
             'modules' =>'nullable|array',
             'modules.*' =>'exists:modules,id',
-            'formation_id' => 'nullable|exists:formations,id',
+            // Un formateur peut désormais intervenir dans plusieurs
+            // formations (voir FormateurService, table pivot
+            // formation_formateur) — accepte un tableau, plus un
+            // formation_id unique.
+            'formation_ids' => 'nullable|array',
+            'formation_ids.*' => 'exists:formations,id',
 
         ];
     }

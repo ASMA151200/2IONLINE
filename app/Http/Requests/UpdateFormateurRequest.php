@@ -46,7 +46,10 @@ class UpdateFormateurRequest extends FormRequest
             'specialite' =>'sometimes|string',
             'modules' =>'nullable|array',
             'modules.*' =>'exists:modules,id',
-            'formation_id' => 'nullable|exists:formations,id',
+            // Voir StoreFormateurRequest — un formateur peut désormais
+            // intervenir dans plusieurs formations.
+            'formation_ids' => 'nullable|array',
+            'formation_ids.*' => 'exists:formations,id',
         ];
     }
 }
