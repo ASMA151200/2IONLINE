@@ -7,6 +7,8 @@ use App\Http\Requests\StoreResultatRequest;
 
 class ResultatController extends Controller
 {
+    use \App\Traits\ChecksFormationOwnership;
+
     public function index(\Illuminate\Http\Request $request)
     {
         $query = Resultat::with(['user', 'examen']);
@@ -26,6 +28,20 @@ class ResultatController extends Controller
         }
 
         if ($request->filled('examen_id')) {
+            // Un formateur ne doit voir les résultats que d'un examen
+            // dont il possède réellement la formation — sans ce
+            // contrôle, il pouvait consulter les résultats de
+            // n'importe quel examen d'un autre formateur en devinant
+            // son ID. Ne s'applique qu'aux formateurs : un étudiant qui
+            // filtre SES PROPRES résultats par examen_id (déjà forcé
+            // sur son user_id juste au-dessus) reste évidemment
+            // autorisé sans vérification de propriété de formation.
+            if ($role === 'formateur') {
+                $examen = \App\Models\Examen::find($request->input('examen_id'));
+                if ($examen) {
+                    $this->authorizeFormationOwner($examen->formation_id);
+                }
+            }
             $query->where('examen_id', $request->input('examen_id'));
         }
 
