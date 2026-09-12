@@ -142,6 +142,12 @@ class ExerciceController extends Controller
     // Correction manuelle (formateur/admin)
     public function corriger(CorrigerReponseRequest $request, Reponse $reponse)
     {
+        // SÉCURITÉ: aucune vérification n'existait — n'importe quel
+        // formateur pouvait corriger la copie d'un étudiant d'une
+        // formation qui n'est pas la sienne.
+        $reponse->load('exercice.lecon.module');
+        $this->authorizeFormationOwner($reponse->exercice->lecon->module->formation_id);
+
         $reponse = $this->exerciceService->corriger($reponse, $request->validated());
 
         return response()->json([

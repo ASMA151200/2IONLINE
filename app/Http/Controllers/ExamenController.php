@@ -116,7 +116,7 @@ class ExamenController extends Controller
 
     /**
      * Passer un examen (etudiant) — POST /v1/examens/{examen}/soumettre
-     * Body attendu: { reponses: [{ question_id, choix_id? }, ...] }
+     * Body attendu: { reponses: [{ question_id, choix_id?, reponse_texte? }, ...] }
      */
     public function soumettre(Request $request, Examen $examen)
     {
@@ -126,6 +126,11 @@ class ExamenController extends Controller
             'reponses' => 'required|array|min:1',
             'reponses.*.question_id' => 'required|exists:exercice_questions,id',
             'reponses.*.choix_id' => 'nullable|exists:choix,id',
+            // CORRIGÉ: le texte des réponses ouvertes n'était pas
+            // accepté du tout — jeté silencieusement avant même
+            // d'atteindre le service, aucune correction manuelle
+            // n'était donc possible ensuite.
+            'reponses.*.reponse_texte' => 'nullable|string',
         ]);
 
         $resultat = $this->examenService->soumettre($examen, $request->user()->id, $data['reponses']);
@@ -135,5 +140,40 @@ class ExamenController extends Controller
             'message' => 'Examen soumis avec succès',
             'data' => $resultat,
         ], 201);
+    }
+
+    /**
+     * Détail des réponses d'un étudiant à un examen (une par question) —
+     * pour que le formateur puisse lire les réponses ouvertes avant de
+     * les corriger. userId optionnel : par défaut l'utilisateur connecté
+     * (un étudiant consultant ses propres réponses).
+     */
+    public function resultatsDetail(Request $request, Examen $examen)
+    {
+        $this->authorizeFormationAccess($examen->formation_id);
+
+        $userId = $request->query('user_id', $request->user()->id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->examenService->resultatsDetail($examen, (int) $userId),
+        ]);
+    }
+
+    /**
+     * Correction manuelle d'une réponse ouverte d'examen (formateur/admin).
+     */
+    public function corrigerReponse(\App\Http\Requests\CorrigerReponseRequest $request, \App\Models\Reponse $reponse)
+    {
+        $reponse->load('examen');
+        $this->authorizeFormationOwner($reponse->examen->formation_id);
+
+        $reponse = $this->examenService->corriger($reponse, $request->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Réponse corrigée avec succès',
+            'data' => $reponse,
+        ]);
     }
 }

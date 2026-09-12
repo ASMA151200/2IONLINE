@@ -14,6 +14,7 @@ class Reponse extends Model
 
     protected $fillable = [
         'exercice_id',
+        'examen_id',
         'user_id',
         'question_id',
         'choix_id',
@@ -26,6 +27,11 @@ class Reponse extends Model
     public function exercice(): BelongsTo
     {
         return $this->belongsTo(Exercice::class);
+    }
+
+    public function examen(): BelongsTo
+    {
+        return $this->belongsTo(Examen::class);
     }
 
     public function etudiant(): BelongsTo

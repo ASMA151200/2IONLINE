@@ -310,6 +310,8 @@ Route::prefix('v1')->group(function (){
         //examens
         Route::apiResource('examens', ExamenController::class);
         Route::post('/examens/{examen}/soumettre', [ExamenController::class, 'soumettre']);
+        Route::get('/examens/{examen}/resultats-detail', [ExamenController::class, 'resultatsDetail']);
+        Route::put('/examens-reponses/{reponse}/corriger', [ExamenController::class, 'corrigerReponse']);
 
         //certificats — lecture (liste/détail/téléchargement) ouverte à
         // tout utilisateur connecté ; création/modification/suppression

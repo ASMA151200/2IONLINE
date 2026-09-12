@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Examen;
 use App\Models\Question;
 use App\Models\Resultat;
+use App\Models\Reponse;
 
 class ExamenService
 {
@@ -47,14 +48,15 @@ class ExamenService
 
     /**
      * Passage d'un examen par un étudiant : note automatiquement les QCM,
-     * calcule un score total ramené au barème de l'examen (bareme_pts), et
-     * enregistre le résultat dans la table resultats.
+     * enregistre CHAQUE réponse individuellement (table exercice_reponses,
+     * partagée avec les exercices via la colonne examen_id — voir
+     * migration 2026_09_10_130000), puis agrège en un Resultat.
      *
-     * ATTENTION: contrairement aux exercices (qui gardent chaque réponse
-     * individuelle dans "reponses"), la table resultats ne stocke qu'un
-     * score final agrégé — le détail question par question n'est pas
-     * conservé pour les examens. Si un historique détaillé est nécessaire,
-     * il faudra une table dédiée (ex: examen_reponses).
+     * CORRIGÉ: le texte des réponses aux questions ouvertes n'était
+     * auparavant jamais enregistré nulle part — seul un score partiel
+     * (uniquement les QCM) était calculé, et le contenu réellement écrit
+     * par l'étudiant pour toute question ouverte était perdu, empêchant
+     * toute correction manuelle ultérieure par le formateur.
      */
     public function soumettre(Examen $examen, int $userId, array $reponses): Resultat
     {
@@ -63,6 +65,8 @@ class ExamenService
         $scoreObtenu = 0;
         $totalPoints = 0;
         $aQuestionOuverte = false;
+        $now = now();
+        $rows = [];
 
         foreach ($questions as $question) {
             $totalPoints += $question->points;
@@ -74,20 +78,77 @@ class ExamenService
                 continue;
             }
 
+            $score = null;
+            $statut = 'en_attente';
+
             if ($question->type === 'qcm' && isset($reponseData['choix_id'])) {
                 $choixCorrect = $question->choix->firstWhere('est_correct', true);
-                if ($choixCorrect && $choixCorrect->id == $reponseData['choix_id']) {
-                    $scoreObtenu += $question->points;
-                }
+                $score = ($choixCorrect && $choixCorrect->id == $reponseData['choix_id']) ? $question->points : 0;
+                $scoreObtenu += $score;
+                $statut = 'corrige';
             } else {
-                // Question ouverte : pas de correction automatique possible,
-                // le score final nécessitera une correction manuelle du
-                // formateur (le résultat est enregistré "en_cours" en
-                // attendant).
+                // Question ouverte : le score attend une correction
+                // manuelle du formateur, mais le texte est désormais
+                // bien conservé (reponse_texte) pour qu'il puisse la
+                // lire et la noter.
                 $aQuestionOuverte = true;
             }
+
+            $rows[] = [
+                'exercice_id'   => null,
+                'examen_id'     => $examen->id,
+                'user_id'       => $userId,
+                'question_id'   => $reponseData['question_id'],
+                'choix_id'      => $reponseData['choix_id'] ?? null,
+                'reponse_texte' => $reponseData['reponse_texte'] ?? null,
+                'score'         => $score,
+                'statut'        => $statut,
+                'created_at'    => $now,
+                'updated_at'    => $now,
+            ];
         }
 
+        if ($rows) {
+            Reponse::insert($rows);
+        }
+
+        $resultat = $this->calculerResultat($examen, $userId, $scoreObtenu, $totalPoints, $aQuestionOuverte);
+
+        return $resultat;
+    }
+
+    /**
+     * Correction manuelle d'une réponse ouverte d'examen par le
+     * formateur — recalcule ensuite le Resultat agrégé de l'étudiant
+     * pour cet examen (score total + statut réussi/échoué/en cours),
+     * exactement comme le fait ExerciceService::corriger() indirectement
+     * via resultatsParEtudiant().
+     */
+    public function corriger(Reponse $reponse, array $data): Reponse
+    {
+        $reponse->update([
+            'score'                 => $data['score'],
+            'commentaire_formateur' => $data['commentaire_formateur'] ?? null,
+            'statut'                => 'corrige',
+        ]);
+
+        $examen = $reponse->examen()->with('questions')->first();
+        $totalPoints = $examen->questions->sum('points');
+        $scoreObtenu = Reponse::where('examen_id', $examen->id)
+            ->where('user_id', $reponse->user_id)
+            ->sum('score');
+        $aQuestionOuverte = Reponse::where('examen_id', $examen->id)
+            ->where('user_id', $reponse->user_id)
+            ->where('statut', 'en_attente')
+            ->exists();
+
+        $this->calculerResultat($examen, $reponse->user_id, $scoreObtenu, $totalPoints, $aQuestionOuverte);
+
+        return $reponse;
+    }
+
+    private function calculerResultat(Examen $examen, int $userId, int $scoreObtenu, int $totalPoints, bool $aQuestionOuverte): Resultat
+    {
         $scoreSur20 = $totalPoints > 0
             ? round(($scoreObtenu / $totalPoints) * $examen->bareme_pts, 2)
             : 0;
@@ -96,12 +157,22 @@ class ExamenService
             ? 'en cours'
             : ($scoreSur20 >= ($examen->bareme_pts / 2) ? 'reussi' : 'echoue');
 
-        return Resultat::create([
-            'score' => $scoreSur20,
-            'date_passage' => now()->toDateString(),
-            'statut' => $statut,
-            'user_id' => $userId,
-            'examen_id' => $examen->id,
-        ]);
+        return Resultat::updateOrCreate(
+            ['user_id' => $userId, 'examen_id' => $examen->id],
+            ['score' => $scoreSur20, 'date_passage' => now()->toDateString(), 'statut' => $statut],
+        );
+    }
+
+    /**
+     * Détail des réponses d'un étudiant à un examen (une par question) —
+     * nécessaire au formateur pour lire et corriger les réponses
+     * ouvertes.
+     */
+    public function resultatsDetail(Examen $examen, int $userId)
+    {
+        return Reponse::with('question')
+            ->where('examen_id', $examen->id)
+            ->where('user_id', $userId)
+            ->get();
     }
 }
