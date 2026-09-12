@@ -41,6 +41,19 @@ return new class extends Migration
         // NULL n'est jamais considéré égal à lui-même par MySQL, donc
         // aucune déduplication réelle pour ces lignes-là) — remplacée
         // par une contrainte couvrant aussi examen_id.
+        //
+        // CORRIGÉ (erreur rencontrée en production) : MySQL refusait de
+        // supprimer cet index unique avec "Cannot drop index ... needed
+        // in a foreign key constraint" — la contrainte de clé étrangère
+        // sur exercice_id s'appuyait sur CET index composite comme seul
+        // index disponible sur sa colonne de tête. Il faut donc d'abord
+        // créer un index dédié rien que sur exercice_id, pour que la
+        // clé étrangère ait toujours un index à utiliser une fois
+        // l'ancien composite supprimé.
+        if (!$this->indexExists('exercice_reponses', 'exercice_reponses_exercice_id_index')) {
+            DB::statement('ALTER TABLE exercice_reponses ADD INDEX exercice_reponses_exercice_id_index (exercice_id)');
+        }
+
         if ($this->indexExists('exercice_reponses', 'exercice_reponses_exercice_id_user_id_question_id_unique')) {
             DB::statement('ALTER TABLE exercice_reponses DROP INDEX exercice_reponses_exercice_id_user_id_question_id_unique');
         }
@@ -53,6 +66,12 @@ return new class extends Migration
     {
         if ($this->indexExists('exercice_reponses', 'exercice_reponses_exercice_examen_user_question_unique')) {
             DB::statement('ALTER TABLE exercice_reponses DROP INDEX exercice_reponses_exercice_examen_user_question_unique');
+        }
+
+        DB::statement('ALTER TABLE exercice_reponses ADD UNIQUE exercice_reponses_exercice_id_user_id_question_id_unique (exercice_id, user_id, question_id)');
+
+        if ($this->indexExists('exercice_reponses', 'exercice_reponses_exercice_id_index')) {
+            DB::statement('ALTER TABLE exercice_reponses DROP INDEX exercice_reponses_exercice_id_index');
         }
 
         Schema::table('exercice_reponses', function (Blueprint $table) {
