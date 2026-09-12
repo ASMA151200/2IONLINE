@@ -35,7 +35,6 @@ return new class extends Migration
             ->exists();
 
         if ($existeVraiment) {
-            $this->command?->info('formation_formateur existe déjà réellement — rien à faire.');
             return;
         }
 
