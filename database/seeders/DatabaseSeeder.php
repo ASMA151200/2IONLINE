@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
         // restent des coquilles vides — à compléter plus tard si besoin.
         $this->call([
             UserSeeder::class,
+            CategorieSeeder::class,
             FormationsSeeder::class,
             FormateurSeeder::class,
             EtudiantSeeder::class,
