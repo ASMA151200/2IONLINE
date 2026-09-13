@@ -29,7 +29,19 @@ class FormationService
     {
         $query = Formation::with(['modules' => function ($q) {
             $q->select('id', 'titre', 'ordre', 'formation_id')->orderBy('ordre');
-        }])->latest();
+        }])
+            // CORRIGÉ: "nb_inscrit" est une simple colonne manuelle, jamais
+            // recalculée automatiquement nulle part dans le code — elle ne
+            // reflète donc jamais le vrai nombre d'apprenants inscrits.
+            // withCount() calcule le vrai total en temps réel (une seule
+            // requête supplémentaire groupée, pas de N+1), restreint aux
+            // inscriptions actives uniquement (statut='actif'), cohérent
+            // avec la définition utilisée partout ailleurs sur la
+            // plateforme (dashboard professeur, partenaire...).
+            ->withCount(['inscriptions as inscrits_count' => function ($q) {
+                $q->where('statut', 'actif');
+            }])
+            ->latest();
 
         // CORRIGÉ: filtrait auparavant uniquement sur formations.user_id
         // (le seul "propriétaire principal") — un formateur autorisé à
@@ -81,7 +93,11 @@ class FormationService
     {
         return Formation::with(['modules' => function ($q) {
             $q->select('id', 'titre', 'ordre', 'formation_id')->orderBy('ordre');
-        }])->findOrFail($id);
+        }])
+            ->withCount(['inscriptions as inscrits_count' => function ($q) {
+                $q->where('statut', 'actif');
+            }])
+            ->findOrFail($id);
     }
 
     //Modifier une formation
