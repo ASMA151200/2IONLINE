@@ -52,7 +52,7 @@ class FormationsSeeder extends Seeder
         $formations = [
             [
                 'titre' => 'CAP Cuisinier',
-                'categorie' => 'Cuisine',
+                'categorie' => 'Restauration',
                 'description' => "Le CAP Cuisinier est une formation complète qui vous prépare au métier de cuisinier professionnel. Sur 36 mois, vous apprenez l'ensemble des techniques culinaires, de la préparation des aliments à la réalisation de plats élaborés, en passant par la gestion d'une cuisine professionnelle.",
                 'image' => '/images/course-cuisine.jpg',
                 'niveau' => 'Débutant',
@@ -62,7 +62,7 @@ class FormationsSeeder extends Seeder
             ],
             [
                 'titre' => 'CAP Pâtissier',
-                'categorie' => 'Pâtisserie',
+                'categorie' => 'Restauration',
                 'description' => "Le CAP Pâtisserie vous forme aux techniques essentielles de l'art de la pâtisserie sur 36 mois, pour vous ouvrir toutes les portes du métier.",
                 'image' => '/images/course-patisserie.jpg',
                 'niveau' => 'Débutant',
@@ -72,7 +72,7 @@ class FormationsSeeder extends Seeder
             ],
             [
                 'titre' => 'CAP Serveur',
-                'categorie' => 'Service & Restauration',
+                'categorie' => 'Restauration',
                 'description' => "Le CAP Serveur vous prépare au métier de serveur en hôtellerie. Sur 36 mois, vous apprenez l'art du service en salle, la mise en place, le protocole d'accueil, le service des boissons et l'excellence de la relation client.",
                 'image' => '/images/course-service.jpg',
                 'niveau' => 'Débutant',
@@ -82,7 +82,7 @@ class FormationsSeeder extends Seeder
             ],
             [
                 'titre' => 'VAE',
-                'categorie' => 'Validation des Acquis',
+                'categorie' => 'Hôtellerie',
                 'description' => "La VAE (Validation des Acquis de l'Expérience) permet de transformer votre expérience professionnelle en diplôme reconnu. En 4 à 6 mois, nos formateurs vous accompagnent dans la constitution de votre dossier et la préparation à l'entretien avec le jury.",
                 'image' => '/images/VAE.jpg',
                 'niveau' => 'Tous niveaux',
@@ -92,7 +92,7 @@ class FormationsSeeder extends Seeder
             ],
             [
                 'titre' => 'Certificat Professionnel de Spécialité-Cuisinier',
-                'categorie' => 'Cuisine',
+                'categorie' => 'Restauration',
                 'description' => "Le Certificat Professionnel de Spécialité Cuisinier est une formation courte et intensive de 6 mois destinée à approfondir une spécialité culinaire. Idéale pour les débutants et professionnels souhaitant monter en compétence.",
                 'image' => '/images/course-cuisine1.jpg',
                 'niveau' => 'Intermédiaire',
@@ -102,7 +102,7 @@ class FormationsSeeder extends Seeder
             ],
             [
                 'titre' => 'Certificat Professionnel de Spécialité-Pâtissier',
-                'categorie' => 'Pâtisserie',
+                'categorie' => 'Restauration',
                 'description' => "Le Certificat Professionnel de Spécialité Pâtissier est une formation de 6 mois pour approfondir votre maîtrise de la pâtisserie. Un choix parfait pour se spécialiser.",
                 'image' => '/images/course-patisserie1.jpg',
                 'niveau' => 'Intermédiaire',
@@ -112,7 +112,7 @@ class FormationsSeeder extends Seeder
             ],
             [
                 'titre' => 'Certificat Professionnel de Spécialité-Serveur',
-                'categorie' => 'Service & Restauration',
+                'categorie' => 'Restauration',
                 'description' => "Le Certificat Professionnel de Spécialité Serveur est une formation de 6 mois axée sur l'excellence du service en restauration gastronomique. Maîtrisez les codes du service haut de gamme.",
                 'image' => '/images/course-service1.jpg',
                 'niveau' => 'Intermédiaire',
@@ -122,7 +122,7 @@ class FormationsSeeder extends Seeder
             ],
             [
                 'titre' => 'Travail à domicile',
-                'categorie' => 'Services à la Personne',
+                'categorie' => 'Hôtellerie',
                 'description' => "La formation Travail à domicile est un programme d'un mois, conçu pour accompagner les travailleurs domestiques dans le développement de leurs compétences.",
                 'image' => '/images/travail-domicile.jpg',
                 'niveau' => 'Débutant',
@@ -132,7 +132,7 @@ class FormationsSeeder extends Seeder
             ],
             [
                 'titre' => 'HACCP',
-                'categorie' => 'Hygiène & Sécurité Alimentaire',
+                'categorie' => 'Restauration',
                 'description' => "La formation HACCP vous certifie aux normes d'hygiène et de sécurité alimentaire, obligatoires pour tout professionnel de la restauration. En 2 mois, maîtrisez l'analyse des risques et la maîtrise des points critiques.",
                 'image' => '/images/course-haccp.jpg',
                 'niveau' => 'Tous niveaux',
@@ -142,7 +142,7 @@ class FormationsSeeder extends Seeder
             ],
             [
                 'titre' => 'INCUBATION STREET FOOD',
-                'categorie' => 'Entrepreneuriat & Incubation',
+                'categorie' => 'Restauration',
                 'description' => "C'est un programme de 3 mois destiné aux jeunes et aux femmes porteurs de projet dans le secteur de l'alimentation de rue. De l'idée au lancement, nous vous accompagnons dans la construction de votre projet.",
                 'image' => '/images/incubation-food.jpg',
                 'niveau' => 'Tous niveaux',
@@ -152,7 +152,7 @@ class FormationsSeeder extends Seeder
             ],
             [
                 'titre' => 'Gestion de restauration',
-                'categorie' => 'Gestion & Management',
+                'categorie' => 'Restauration',
                 'description' => "La formation Gestion de restauration vous donne en 2 mois toutes les clés pour gérer un établissement performant : pilotage financier, gestion des équipes, approvisionnements et stratégie commerciale.",
                 'image' => '/images/course-management.jpg',
                 'niveau' => 'Intermédiaire',
