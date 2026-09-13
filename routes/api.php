@@ -212,6 +212,7 @@ Route::prefix('v1')->group(function (){
             Route::get('/analytics/formations', [AnalyticsController::class, 'allFormations']);
             Route::get('/analytics/formations/{formation}', [AnalyticsController::class, 'formation']);
             Route::get('/analytics/students', [AnalyticsController::class, 'students']);
+            Route::get('/analytics/export-pdf', [AnalyticsController::class, 'exportPdf']);
         });
 
         // Partenaire uniquement — son propre espace (lecture seule sur ce

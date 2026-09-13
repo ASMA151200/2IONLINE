@@ -9,6 +9,7 @@ use App\Models\Resultat;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 /**
  * Aucune nouvelle table nécessaire — tout est calculé à partir des
@@ -18,19 +19,55 @@ use Illuminate\Http\Request;
 class AnalyticsController extends Controller
 {
     /**
-     * Vue d'ensemble globale (admin) — GET /v1/analytics/admin
+     * Résout un éventuel filtre ?month=YYYY-MM en bornes de dates
+     * [début du mois, fin du mois] — ou [null, null] si absent (aucun
+     * filtre, comportement global inchangé pour ne rien casser des
+     * usages existants qui n'envoient pas ce paramètre).
      */
-    public function admin(): JsonResponse
+    private function resolveMonthRange(Request $request): array
     {
-        $totalStudents = User::where('role', 'etudiant')->count();
-        $totalRevenue = Paiement::where('statut', 'confirme')->sum('montant');
-        $totalEnrollments = Inscription::count();
+        $month = $request->query('month');
+
+        if (!$month || !preg_match('/^\d{4}-\d{2}$/', $month)) {
+            return [null, null];
+        }
+
+        $debut = Carbon::createFromFormat('Y-m-d', "{$month}-01")->startOfDay();
+        $fin = $debut->copy()->endOfMonth()->endOfDay();
+
+        return [$debut, $fin];
+    }
+
+    /**
+     * Vue d'ensemble globale (admin) — GET /v1/analytics/admin
+     * Accepte ?month=YYYY-MM pour restreindre aux revenus/inscriptions/
+     * résultats de CE mois précis (comportement global si omis).
+     */
+    public function admin(Request $request): JsonResponse
+    {
+        [$debut, $fin] = $this->resolveMonthRange($request);
+
+        $totalStudents = User::where('role', 'etudiant')
+            ->when($debut, fn ($q) => $q->whereBetween('created_at', [$debut, $fin]))
+            ->count();
+
+        $totalRevenue = Paiement::where('statut', 'confirme')
+            ->when($debut, fn ($q) => $q->whereBetween('created_at', [$debut, $fin]))
+            ->sum('montant');
+
+        $totalEnrollments = Inscription::when($debut, fn ($q) => $q->whereBetween('created_at', [$debut, $fin]))->count();
+
+        // "Actifs" n'a pas de définition naturelle "sur un mois" sans
+        // journal d'activité dédié — reste un chiffre global même en
+        // présence d'un filtre, pour éviter d'inventer une métrique
+        // trompeuse.
         $activeUsers = User::where('is_active', true)->count();
 
-        $totalResultats = Resultat::count();
-        $completedResultats = Resultat::whereIn('statut', ['reussi', 'echoue'])->count();
+        $resultatsQuery = Resultat::when($debut, fn ($q) => $q->whereBetween('date_passage', [$debut, $fin]));
+        $totalResultats = (clone $resultatsQuery)->count();
+        $completedResultats = (clone $resultatsQuery)->whereIn('statut', ['reussi', 'echoue'])->count();
         $completionRate = $totalResultats > 0 ? round(($completedResultats / $totalResultats) * 100, 1) : 0;
-        $averageScore = round((float) Resultat::avg('score'), 1);
+        $averageScore = round((float) (clone $resultatsQuery)->avg('score'), 1);
 
         return response()->json([
             'success' => true,
@@ -75,17 +112,27 @@ class AnalyticsController extends Controller
 
     /**
      * Analytics de toutes les formations — GET /v1/analytics/formations
+     * Accepte ?month=YYYY-MM (mêmes bornes que admin() ci-dessus) pour
+     * ne compter que les inscriptions/paiements de ce mois précis.
      */
-    public function allFormations(): JsonResponse
+    public function allFormations(Request $request): JsonResponse
     {
+        [$debut, $fin] = $this->resolveMonthRange($request);
+
         $formations = Formation::all();
 
-        $data = $formations->map(function ($formation) {
-            $enrolledStudents = Inscription::where('formation_id', $formation->id)->count();
+        $data = $formations->map(function ($formation) use ($debut, $fin) {
+            $enrolledStudents = Inscription::where('formation_id', $formation->id)
+                ->when($debut, fn ($q) => $q->whereBetween('created_at', [$debut, $fin]))
+                ->count();
             $completedStudents = Inscription::where('formation_id', $formation->id)
-                ->where('statut', 'termine')->count();
+                ->where('statut', 'termine')
+                ->when($debut, fn ($q) => $q->whereBetween('created_at', [$debut, $fin]))
+                ->count();
             $revenue = Paiement::where('formation_id', $formation->id)
-                ->where('statut', 'confirme')->sum('montant');
+                ->where('statut', 'confirme')
+                ->when($debut, fn ($q) => $q->whereBetween('created_at', [$debut, $fin]))
+                ->sum('montant');
 
             return [
                 'formationId' => (string) $formation->id,
@@ -134,6 +181,33 @@ class AnalyticsController extends Controller
         });
 
         return response()->json(['success' => true, 'data' => $data]);
+    }
+
+    /**
+     * Export PDF du rapport analytique (admin/formateur) — GET
+     * /v1/analytics/export-pdf, accepte ?month=YYYY-MM comme les
+     * endpoints ci-dessus. Pensé pour être partagé hors plateforme (par
+     * email à un partenaire, par exemple) — d'où un PDF autonome plutôt
+     * qu'un lien nécessitant une connexion.
+     */
+    public function exportPdf(Request $request)
+    {
+        [$debut, $fin] = $this->resolveMonthRange($request);
+        $month = $request->query('month');
+
+        $adminData = json_decode($this->admin($request)->getContent(), true)['data'];
+        $formationsData = json_decode($this->allFormations($request)->getContent(), true)['data'];
+
+        $pdf = app('dompdf.wrapper')->loadView('rapports.analytics', [
+            'periode' => $month ? $debut->translatedFormat('F Y') : 'Depuis le lancement',
+            'genereLe' => now()->translatedFormat('d/m/Y à H:i'),
+            'stats' => $adminData,
+            'formations' => $formationsData,
+        ]);
+
+        $nomFichier = 'rapport-analytics-' . ($month ?? 'global') . '.pdf';
+
+        return $pdf->download($nomFichier);
     }
 
     /**
