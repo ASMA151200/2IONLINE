@@ -26,6 +26,28 @@ class Formation extends Model
     ];
 
 
+    /**
+     * Transforme le chemin relatif de stockage en URL complète — même
+     * correction que sur Actus/Opportunite/Lecon. Sans cela, l'API renvoyait
+     * "formations/images/xxx.jpg", inutilisable par <img>/next/image : l'image
+     * d'une formation fraîchement créée ne s'affichait jamais.
+     * Pour supprimer/remplacer le fichier, utiliser getRawOriginal('image').
+     */
+    public function getImageAttribute(?string $value): ?string
+    {
+        if (!$value) {
+            return $value;
+        }
+
+        // URL absolue, ou chemin statique du frontend (formations seedées :
+        // "/images/course-cuisine.jpg") : à laisser tel quel.
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://') || str_starts_with($value, '/')) {
+            return $value;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($value);
+    }
+
     // Relation
     public function categorie(): BelongsTo
     {

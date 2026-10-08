@@ -17,6 +17,7 @@ use App\Http\Controllers\ProgressionController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\ResultatController;
 use App\Http\Controllers\ActusController;
+use App\Http\Controllers\PartenaireLogoController;
 use App\Http\Controllers\OpportuniteController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\Api\{AlerteController, PushSubscriptionController};
@@ -73,6 +74,8 @@ Route::prefix('v1')->group(function (){
     // opportunité (aucune restriction de rôle). Corrigé : lecture
     // publique ici, écriture restreinte à admin/formateur plus bas.
     Route::apiResource('actus', ActusController::class)->only(['index', 'show']);
+    // Logos partenaires de la page d'accueil (lecture publique)
+    Route::get('/partenaire-logos', [PartenaireLogoController::class, 'index']);
     Route::apiResource('opportunites', OpportuniteController::class)->only(['index', 'show']);
 
     // Dons ponctuels — publics, un visiteur non connecté doit pouvoir donner
@@ -194,6 +197,12 @@ Route::prefix('v1')->group(function (){
             Route::apiResource('formateurs', FormateurController::class); //creation de formateur
             Route::apiResource('etudiants', EtudiantController::class);  //creation d'etudiants
             Route::apiResource('partenaires', PartenaireController::class); //creation de partenaire
+
+            // Logos partenaires de la page d'accueil (vitrine)
+            Route::get('/admin/partenaire-logos', [PartenaireLogoController::class, 'indexAdmin']);
+            Route::post('/partenaire-logos', [PartenaireLogoController::class, 'store']);
+            Route::put('/partenaire-logos/{partenaireLogo}', [PartenaireLogoController::class, 'update']);
+            Route::delete('/partenaire-logos/{partenaireLogo}', [PartenaireLogoController::class, 'destroy']);
 
             Route::put('/formateurs/{formateur}/toggle-active', [FormateurController::class, 'toggleActive']);
             Route::post('/formateurs/{formateur}/reset-password', [FormateurController::class, 'resetPassword']);

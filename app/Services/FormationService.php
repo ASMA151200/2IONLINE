@@ -105,8 +105,8 @@ class FormationService
     {
         //Remplacer image
         if (isset($data['image'])) {
-            if ($formation->image) {
-                Storage::disk('public')->delete($formation->image);
+            if ($formation->getRawOriginal('image')) {
+                Storage::disk('public')->delete($formation->getRawOriginal('image'));
             }
             $data['image'] = $data['image']->store('formations/images', 'public');
         }
@@ -120,8 +120,8 @@ class FormationService
     public function delete(Formation $formation): void
     {
         //Supprimer image
-        if ($formation->image) {
-            Storage::disk('public')->delete($formation->image);
+        if ($formation->getRawOriginal('image')) {
+            Storage::disk('public')->delete($formation->getRawOriginal('image'));
         }
 
         $formation->deleteOrFail();
