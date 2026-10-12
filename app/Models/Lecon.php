@@ -18,8 +18,31 @@ class Lecon extends Model
         'video',
         'document',
         'ordre',
+        'publie',
         'module_id',
     ];
+
+    protected $casts = [
+        'publie' => 'boolean',
+    ];
+
+    /**
+     * Un apprenant ne voit que les leçons PUBLIÉES. Le scope est global :
+     * il couvre automatiquement l'API des leçons, les modules chargés avec
+     * leurs leçons, "mes cours", la recherche et les exercices rattachés,
+     * sans modifier chaque contrôleur. Formateur/admin voient tout (ainsi
+     * que les traitements sans utilisateur connecté : seeders, jobs).
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope('publiees_pour_apprenants', function ($builder) {
+            $user = \Illuminate\Support\Facades\Auth::user();
+
+            if ($user && $user->role === 'etudiant') {
+                $builder->where('lecons.publie', true);
+            }
+        });
+    }
 
     /**
      * Transforme le chemin relatif de stockage en URL complète et

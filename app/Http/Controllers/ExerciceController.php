@@ -74,6 +74,8 @@ class ExerciceController extends Controller
     public function show(Exercice $exercice)
     {
         $exercice->load('lecon.module');
+        // Leçon non publiée (invisible pour un apprenant) : l'exercice l'est aussi
+        abort_if(!$exercice->lecon, 404, 'Exercice introuvable');
         $this->authorizeFormationAccess($exercice->lecon->module->formation_id);
 
         return response()->json([
@@ -115,6 +117,8 @@ class ExerciceController extends Controller
     public function soumettre(StoreReponseRequest $request, Exercice $exercice)
     {
         $exercice->load('lecon.module');
+        // Leçon non publiée (invisible pour un apprenant) : l'exercice l'est aussi
+        abort_if(!$exercice->lecon, 404, 'Exercice introuvable');
         $this->authorizeFormationAccess($exercice->lecon->module->formation_id);
 
         try {
@@ -161,6 +165,8 @@ class ExerciceController extends Controller
     public function resultats(Request $request, Exercice $exercice)
     {
         $exercice->load('lecon.module');
+        // Leçon non publiée (invisible pour un apprenant) : l'exercice l'est aussi
+        abort_if(!$exercice->lecon, 404, 'Exercice introuvable');
         $this->authorizeFormationAccess($exercice->lecon->module->formation_id);
 
         $userId = $request->query('user_id', $request->user()->id);

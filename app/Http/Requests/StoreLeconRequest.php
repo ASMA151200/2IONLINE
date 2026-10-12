@@ -35,7 +35,8 @@ class StoreLeconRequest extends FormRequest
             // prioritaire (voir LeconService).
             'video_url' => 'nullable|url|max:500',
             'document' =>'nullable|file|mimes:pdf,docx,doc,pptx,ppt|max:20480',
-            'ordre' =>'required|integer|min:1'
+            'ordre' =>'required|integer|min:1',
+            'publie' => 'sometimes|boolean'
 
         ];
     }

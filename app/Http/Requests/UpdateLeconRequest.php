@@ -35,7 +35,8 @@ class UpdateLeconRequest extends FormRequest
             // CORRIGÉ: "docs" n'est pas une extension valide (c'est
             // "docx" qui existe, déjà présent juste après en double).
             'document' =>'nullable|file|mimes:pdf,docx,doc,pptx,ppt|max:20480',
-            'ordre' =>'sometimes|integer|min:1'
+            'ordre' =>'sometimes|integer|min:1',
+            'publie' => 'sometimes|boolean'
         ];
     }
 }
