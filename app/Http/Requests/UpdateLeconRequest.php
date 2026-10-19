@@ -36,7 +36,9 @@ class UpdateLeconRequest extends FormRequest
             // "docx" qui existe, déjà présent juste après en double).
             'document' =>'nullable|file|mimes:pdf,docx,doc,pptx,ppt|max:20480',
             'ordre' =>'sometimes|integer|min:1',
-            'publie' => 'sometimes|boolean'
+            'publie' => 'sometimes|boolean',
+            'video_ref' => 'nullable|string|max:255',
+            'document_ref' => 'nullable|string|max:255'
         ];
     }
 }

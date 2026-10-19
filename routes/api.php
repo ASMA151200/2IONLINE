@@ -18,6 +18,7 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\ResultatController;
 use App\Http\Controllers\ActusController;
 use App\Http\Controllers\PartenaireLogoController;
+use App\Http\Controllers\UploadController;
 use App\Http\Controllers\OpportuniteController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\Api\{AlerteController, PushSubscriptionController};
@@ -76,6 +77,8 @@ Route::prefix('v1')->group(function (){
     Route::apiResource('actus', ActusController::class)->only(['index', 'show']);
     // Logos partenaires de la page d'accueil (lecture publique)
     Route::get('/partenaire-logos', [PartenaireLogoController::class, 'index']);
+    // Envoi direct des gros fichiers (le ticket X-Upload-Ticket fait office d'auth)
+    Route::post('/uploads', [UploadController::class, 'store'])->middleware('throttle:30,1');
     Route::apiResource('opportunites', OpportuniteController::class)->only(['index', 'show']);
 
     // Dons ponctuels — publics, un visiteur non connecté doit pouvoir donner
@@ -145,6 +148,7 @@ Route::prefix('v1')->group(function (){
             Route::post('/modules', [ModuleController::class, 'store']);
             Route::put('/modules/{module}', [ModuleController::class, 'update']);
             Route::delete('/modules/{module}', [ModuleController::class, 'destroy']);
+            Route::post('/uploads/ticket', [UploadController::class, 'ticket'])->middleware('throttle:60,1');
             Route::post('/lecons', [LeconController::class, 'store']);
             Route::put('/lecons/{lecon}', [LeconController::class, 'update']);
             Route::delete('/lecons/{lecon}', [LeconController::class, 'destroy']);

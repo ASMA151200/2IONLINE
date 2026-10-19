@@ -7,6 +7,7 @@ use App\Notifications\AlerteNotification;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\Storage;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -66,3 +67,14 @@ Artisan::command('push:test {target?}', function (?string $target = null) {
 Schedule::command('queue:work --stop-when-empty --max-time=50')
     ->everyMinute()
     ->withoutOverlapping();
+
+// Purge les fichiers déposés par envoi direct mais jamais rattachés à une leçon
+// (formulaire abandonné) : dossier uploads/tmp, plus vieux que 24 h.
+Schedule::call(function () {
+    $disk = Storage::disk('public');
+    foreach ($disk->allFiles('uploads/tmp') as $file) {
+        if ($disk->lastModified($file) < now()->subDay()->getTimestamp()) {
+            $disk->delete($file);
+        }
+    }
+})->daily()->name('purge-uploads-temporaires');
