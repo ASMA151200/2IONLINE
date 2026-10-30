@@ -236,6 +236,8 @@ Route::prefix('v1')->group(function (){
             Route::get('/mes-financements/stats', [PartenaireDashboardController::class, 'stats']);
             Route::get('/mes-financements/{formation}/etudiants', [PartenaireDashboardController::class, 'etudiantsFormation']);
             Route::get('/mes-financements/rapport-pdf', [PartenaireDashboardController::class, 'rapportPdf']);
+            // Après stats / rapport-pdf, et limitée aux identifiants numériques
+            Route::get('/mes-financements/{formation}', [PartenaireDashboardController::class, 'detail'])->whereNumber('formation');
         });
 
         //Etudiant uniquement

@@ -33,6 +33,37 @@ class PartenaireDashboardController extends Controller
     }
 
     /**
+     * Fiche d'UNE formation financée (informations + montant/date de
+     * financement). Le contrôle se fait via la table pivot : un partenaire
+     * ne peut consulter que les formations qu'il finance.
+     */
+    public function detail(Request $request, int $formationId): JsonResponse
+    {
+        $partenaire = $request->user()->partenaire;
+
+        if (!$partenaire) {
+            return response()->json(['success' => false, 'message' => 'Profil partenaire introuvable'], 404);
+        }
+
+        $formation = $partenaire->formations()
+            ->where('formations.id', $formationId)
+            ->withCount([
+                'inscriptions as inscriptions_count' => fn ($q) => $q->where('statut', 'actif'),
+                'modules',
+            ])
+            ->first();
+
+        if (!$formation) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vous ne financez pas cette formation.',
+            ], 403);
+        }
+
+        return response()->json(['success' => true, 'data' => $formation]);
+    }
+
+    /**
      * Statistiques agrégées sur l'ensemble des formations financées par
      * ce partenaire — montant total investi, étudiants, taux de réussite,
      * certificats délivrés.
