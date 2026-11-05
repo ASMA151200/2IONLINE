@@ -102,6 +102,13 @@ class AuthService
             'password' => Hash::make($data['nouveau_password'])
         ]);
 
+        // Déconnecte les AUTRES appareils/sessions : si le mot de passe était
+        // compromis, les sessions déjà ouvertes par un tiers ne survivent pas.
+        $current = $user->currentAccessToken();
+        $user->tokens()
+            ->when($current, fn ($q) => $q->where('id', '!=', $current->id))
+            ->delete();
+
         return true;
     }
 
@@ -146,9 +153,14 @@ class AuthService
         }
 
         // Mettre à jour le mot de passe
-        User::where('email', $data['email'])->update([
+        $user = User::where('email', $data['email'])->first();
+
+        $user?->update([
             'password' => Hash::make($data['nouveau_password'])
         ]);
+
+        // Mot de passe réinitialisé : toutes les sessions existantes sont fermées
+        $user?->tokens()->delete();
 
         // Supprimer le code utilisé
         $resetCode->delete();

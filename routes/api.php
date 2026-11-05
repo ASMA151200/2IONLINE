@@ -45,17 +45,16 @@ Route::prefix('v1')->group(function (){
 
     //Routes publiques
     // Rate limiting : sans ça, un attaquant peut tenter des milliers de
-    // mots de passe/inscriptions par seconde. "5,1" = 5 tentatives par
-    // minute par IP+email combinés (clé par défaut de throttle sur ces
-    // routes). Volontairement plus permissif sur login (l'utilisateur
-    // légitime peut se tromper) que sur register/forgotPassword (aucune
-    // raison légitime de spammer ces deux-là).
-    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
-    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+    // mots de passe/inscriptions par seconde. Limites nommées (voir
+    // AppServiceProvider) : comptées PAR ADRESSE E-MAIL et non par IP, car
+    // ces routes sont appelées par le serveur Vercel (même IP pour tous les
+    // visiteurs). Plus permissif sur login que sur register/forgotPassword.
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth-register');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth-login');
 
     // reinitialisation et mot de passe oublie
-    Route::post('/forgotPassword', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,1');
-    Route::post('/resetPassword',  [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
+    Route::post('/forgotPassword', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth-forgot');
+    Route::post('/resetPassword',  [AuthController::class, 'resetPassword'])->middleware('throttle:auth-reset');
 
     // IPN PayDunya — appelée directement par les serveurs PayDunya, sans
     // session utilisateur. DOIT rester hors du groupe auth:sanctum, sinon
