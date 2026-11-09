@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 
 use App\Mail\EtudiantCreeMail;
 use Illuminate\Support\Facades\Mail;
+use App\Support\SafeMail;
 use Illuminate\Support\Facades\DB;
 
 class EtudiantService
@@ -69,7 +70,7 @@ class EtudiantService
             $etudiant->load(['formations']);
 
             // Envoi du mail
-            Mail::to($user->email)->send(new EtudiantCreeMail($etudiant, $password));
+            SafeMail::queue($user->email, new EtudiantCreeMail($etudiant, $password));
 
             return [
                 'etudiant' => $etudiant->load(['user', 'formations']),
@@ -146,7 +147,7 @@ class EtudiantService
         $password = Str::random(6);
         $etudiant->user->update(['password' => Hash::make($password)]);
 
-        Mail::to($etudiant->user->email)->send(new EtudiantCreeMail($etudiant->load('formations'), $password));
+        SafeMail::queue($etudiant->user->email, new EtudiantCreeMail($etudiant->load('formations'), $password));
 
         return $password;
     }

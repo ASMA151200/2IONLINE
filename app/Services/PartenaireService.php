@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 
 use App\Mail\PartenaireCreeMail;
 use Illuminate\Support\Facades\Mail;
+use App\Support\SafeMail;
 use Illuminate\Support\Facades\DB;
 
 class PartenaireService
@@ -45,7 +46,7 @@ class PartenaireService
 
             $partenaire->load(['user', 'formations']);
 
-            Mail::to($user->email)->send(new PartenaireCreeMail($partenaire, $password));
+            SafeMail::queue($user->email, new PartenaireCreeMail($partenaire, $password));
 
             return [
                 'partenaire' => $partenaire,
@@ -98,7 +99,7 @@ class PartenaireService
         $password = Str::random(6);
         $partenaire->user->update(['password' => Hash::make($password)]);
 
-        Mail::to($partenaire->user->email)->send(new PartenaireCreeMail($partenaire->load('user', 'formations'), $password));
+        SafeMail::queue($partenaire->user->email, new PartenaireCreeMail($partenaire->load('user', 'formations'), $password));
 
         return $password;
     }

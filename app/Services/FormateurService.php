@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 
 use App\Mail\FormateurCreeMail;
 use Illuminate\Support\Facades\Mail;
+use App\Support\SafeMail;
 use Illuminate\Support\Facades\DB;
 
 class FormateurService
@@ -67,7 +68,7 @@ class FormateurService
             $formateur->load(['user', 'modules']);
 
             // Envoi du mail
-            Mail::to($user->email)->send(new FormateurCreeMail($formateur, $password));
+            SafeMail::queue($user->email, new FormateurCreeMail($formateur, $password));
 
             return [
                 'formateur' => $formateur,
@@ -148,7 +149,7 @@ class FormateurService
         $password = Str::random(6);
         $formateur->user->update(['password' => Hash::make($password)]);
 
-        Mail::to($formateur->user->email)->send(new FormateurCreeMail($formateur->load('user', 'modules'), $password));
+        SafeMail::queue($formateur->user->email, new FormateurCreeMail($formateur->load('user', 'modules'), $password));
 
         return $password;
     }
