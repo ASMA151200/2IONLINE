@@ -24,7 +24,8 @@ class UpdateExerciceRequest extends FormRequest
     {
         return [
             'titre'           => 'sometimes|string|max:255',
-            'description'     => 'nullable|string',
+            'description'     => 'nullable|string', // = « Situation »
+            'consigne'        => 'nullable|string',
             'type'            => 'sometimes|in:qcm,ouvert,mixte',
             'duree'           => 'nullable|integer|min:1',
             'note_max'        => 'sometimes|numeric|min:0',

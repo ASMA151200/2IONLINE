@@ -23,6 +23,7 @@ class ExerciceService
             'lecon_id'    => $data['lecon_id'],
             'titre'       => $data['titre'],
             'description' => $data['description'] ?? null,
+            'consigne' => $data['consigne'] ?? null,
             'type'        => $data['type'],
             'duree'       => $data['duree'] ?? null,
             'note_max'    => $data['note_max'] ?? 20,
@@ -59,6 +60,7 @@ class ExerciceService
         $exercice->update([
             'titre'       => $data['titre'] ?? $exercice->titre,
             'description' => $data['description'] ?? $exercice->description,
+            'consigne' => $data['consigne'] ?? $exercice->consigne,
             'type'        => $data['type'] ?? $exercice->type,
             'duree'       => $data['duree'] ?? $exercice->duree,
             'note_max'    => $data['note_max'] ?? $exercice->note_max,

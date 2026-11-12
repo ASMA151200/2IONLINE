@@ -16,6 +16,7 @@ class Exercice extends Model
         'lecon_id',
         'titre',
         'description',
+        'consigne',
         'type',
         'duree',
         'note_max'

@@ -25,7 +25,8 @@ class StoreExerciceRequest extends FormRequest
         return [
         'lecon_id'    => 'required|exists:lecons,id',
         'titre'       => 'required|string|max:255',
-        'description' => 'nullable|string',
+        'description' => 'nullable|string', // = « Situation »
+        'consigne'    => 'nullable|string',
         'type'        => 'required|in:qcm,ouvert,mixte',
         'duree'       => 'nullable|integer|min:1',
         'note_max'    => 'nullable|integer|min:1',
