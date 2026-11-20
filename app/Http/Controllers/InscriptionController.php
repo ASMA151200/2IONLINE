@@ -72,6 +72,15 @@ class InscriptionController extends Controller
             ],409);
         }
 
+        // Une seule formation active à la fois
+        if (($data['statut'] ?? 'actif') === 'actif'
+            && ($conflit = Inscription::conflitFormationActive(auth()->id(), (int) $data['formation_id']))) {
+            return response()->json([
+                'success' => false,
+                'message' => Inscription::messageUneSeuleFormation($conflit),
+            ], 409);
+        }
+
 
         $inscription =
         $this->inscriptionService

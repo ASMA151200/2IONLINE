@@ -30,7 +30,7 @@ class StoreEtudiantRequest extends FormRequest
             'date_naissance'  => 'required|date',
             'lieu_naissance'  => 'required|string',
             'niveau'          => 'required|string',
-            'formations'      => 'required|array',
+            'formations'      => 'required|array|max:1', // une seule formation par apprenant
             'formations.*'    => 'exists:formations,id',
         ];
     }

@@ -37,4 +37,27 @@ class Inscription extends Model
     }
 
 
+
+    /**
+     * RÈGLE MÉTIER : un apprenant ne suit qu'UNE SEULE formation à la fois
+     * (une seule inscription au statut « actif »). Renvoie l'inscription active
+     * qui entre en conflit (autre formation, autre inscription), ou null.
+     */
+    public static function conflitFormationActive(int $userId, int $formationId, ?int $exceptInscriptionId = null): ?self
+    {
+        return static::where('user_id', $userId)
+            ->where('statut', 'actif')
+            ->where('formation_id', '!=', $formationId)
+            ->when($exceptInscriptionId, fn ($q) => $q->where('id', '!=', $exceptInscriptionId))
+            ->with('formation:id,titre')
+            ->first();
+    }
+
+    public static function messageUneSeuleFormation(self $conflit): string
+    {
+        $titre = $conflit->formation->titre ?? 'une autre formation';
+
+        return "Cet apprenant suit déjà la formation « {$titre} ». "
+            . 'Un apprenant ne peut suivre qu\'une seule formation à la fois.';
+    }
 }

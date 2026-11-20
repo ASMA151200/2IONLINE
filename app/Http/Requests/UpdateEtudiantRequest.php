@@ -45,7 +45,7 @@ class UpdateEtudiantRequest extends FormRequest
             'date_naissance'  => 'sometimes|date',
             'lieu_naissance'  => 'sometimes|string',
             'niveau'          => 'sometimes|string',
-            'formations'      => 'sometimes|array',
+            'formations'      => 'sometimes|array|max:1', // une seule formation par apprenant
             'formations.*'    => 'exists:formations,id',
             ];
     }

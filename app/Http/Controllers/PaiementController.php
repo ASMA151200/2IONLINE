@@ -36,6 +36,14 @@ class PaiementController extends Controller
         // utilisateur connecté
         $data['user_id'] = auth()->id();
 
+        // Une seule formation active à la fois : inutile de payer une 2e formation
+        if ($conflit = \App\Models\Inscription::conflitFormationActive(auth()->id(), (int) $data['formation_id'])) {
+            return response()->json([
+                'success' => false,
+                'message' => \App\Models\Inscription::messageUneSeuleFormation($conflit),
+            ], 409);
+        }
+
         // SÉCURITÉ: un paiement créé ici (avant redirection vers PayDunya)
         // ne doit JAMAIS être marqué "confirme" immédiatement — c'est
         // uniquement PayDunyaController::ipn() (webhook vérifié) qui peut

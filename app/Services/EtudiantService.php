@@ -104,12 +104,20 @@ class EtudiantService
         if (isset($data['formations'])) {
             $etudiant->formations()->sync($data['formations']);
 
+            // CHANGEMENT de formation : l'ancienne inscription active passe à
+            // « annulé » (ligne conservée, paiements intacts). Avant, elle
+            // restait active : l'apprenant gardait l'accès aux DEUX formations,
+            // d'où les doubles suivis. Seulement si une nouvelle formation est
+            // fournie : une liste vide ne touche à aucune inscription.
+            if (!empty($data['formations'])) {
+                \App\Models\Inscription::where('user_id', $etudiant->user_id)
+                    ->where('statut', 'actif')
+                    ->whereNotIn('formation_id', $data['formations'])
+                    ->update(['statut' => 'annule']);
+            }
+
             // Même logique qu'à la création : garantit un accès réel
-            // (inscription active) pour toute formation ajoutée ici, pas
-            // seulement le lien informatif. Les formations retirées ne
-            // voient pas leur inscription automatiquement annulée (pour
-            // ne jamais toucher accidentellement à une inscription liée
-            // à un vrai paiement PayDunya déjà confirmé).
+            // (inscription active) pour la formation choisie.
             foreach ($data['formations'] as $formationId) {
                 \App\Models\Inscription::updateOrCreate(
                     ['user_id' => $etudiant->user_id, 'formation_id' => $formationId],

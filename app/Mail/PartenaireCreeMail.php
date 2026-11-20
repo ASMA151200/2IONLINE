@@ -36,7 +36,7 @@ class PartenaireCreeMail extends Mailable
             view: 'emails.mailPartenaire',
             with: [
                 'lien_plateforme' => $site,
-            'lien_espace_partenaire' => $site . '/login',
+                'lien_espace_partenaire' => $site . '/login',
             ],
         );
     }

@@ -35,6 +35,16 @@ class InscriptionService
         array $data
     ): Inscription
     {
+        $statut = $data['statut'] ?? $inscription->statut;
+        $formationId = (int) ($data['formation_id'] ?? $inscription->formation_id);
+
+        if ($statut === 'actif'
+            && ($conflit = Inscription::conflitFormationActive($inscription->user_id, $formationId, $inscription->id))) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'statut' => Inscription::messageUneSeuleFormation($conflit),
+            ]);
+        }
+
         $inscription->update($data);
 
         return $inscription;

@@ -36,7 +36,7 @@ class EtudiantCreeMail extends Mailable
             view: 'emails.mailEtudiant',
             with: [
                 'lien_plateforme' => $site,
-            'lien_premiere_lecon' => $site . '/login',
+                'lien_premiere_lecon' => $site . '/login',
             ],
         );
     }

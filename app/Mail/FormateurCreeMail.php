@@ -36,7 +36,7 @@ class FormateurCreeMail extends Mailable
             view: 'emails.mailFormateur',
             with: [
                 'lien_plateforme' => $site,
-            'lien_espace_formateur' => $site . '/login',
+                'lien_espace_formateur' => $site . '/login',
             ],
         );
     }

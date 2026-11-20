@@ -127,6 +127,20 @@ class PayDunyaController extends Controller
         if ($status === 'completed') {
             $paiement->update(['statut' => 'confirme']);
 
+            // Règle « une seule formation active » : l'argent est bien encaissé
+            // (paiement confirmé) mais on n'active PAS une 2e formation. À
+            // traiter par l'administrateur (changement de formation/remboursement).
+            if ($conflit = Inscription::conflitFormationActive((int) $paiement->user_id, (int) $paiement->formation_id)) {
+                Log::warning('[PayDunya] Paiement confirmé pour une 2e formation : inscription NON activée', [
+                    'paiement_id' => $paiement->id,
+                    'user_id' => $paiement->user_id,
+                    'formation_demandee' => $paiement->formation_id,
+                    'formation_active' => $conflit->formation_id,
+                ]);
+
+                return response()->json(['success' => true]);
+            }
+
             // Active (ou crée) l'inscription correspondante — c'est ici,
             // et UNIQUEMENT ici, qu'un paiement confirmé donne accès à la
             // formation.
